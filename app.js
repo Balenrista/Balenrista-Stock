@@ -71,6 +71,7 @@ modalStyle.textContent = `
 
     position: fixed;
     inset: 0;
+
     z-index: 999;
 
     display: none;
@@ -111,13 +112,13 @@ modalStyle.textContent = `
     background:
       linear-gradient(
         145deg,
-        rgba(82, 66, 61, 0.92),
-        rgba(22, 15, 12, 0.96)
+        rgba(82,66,61,.92),
+        rgba(22,15,12,.96)
       );
 
     border:
       1px solid
-      rgba(192, 186, 179, 0.18);
+      rgba(192,186,179,.18);
 
     border-radius: 30px;
 
@@ -153,10 +154,12 @@ modalStyle.textContent = `
   .modal-top {
 
     display: flex;
+
     align-items: center;
     justify-content: space-between;
 
     gap: 15px;
+
     margin-bottom: 18px;
 
   }
@@ -170,6 +173,7 @@ modalStyle.textContent = `
     flex-shrink: 0;
 
     display: flex;
+
     align-items: center;
     justify-content: center;
 
@@ -382,7 +386,8 @@ modalStyle.textContent = `
 
     border-radius: 50%;
 
-    background: var(--moon-rock);
+    background:
+      var(--moon-rock);
 
   }
 
@@ -391,7 +396,8 @@ modalStyle.textContent = `
 
     display: grid;
 
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns:
+      1fr 1fr;
 
     gap: 10px;
 
@@ -464,6 +470,7 @@ modalStyle.textContent = `
     display: none;
 
     margin-top: 16px;
+
     padding-top: 16px;
 
     border-top:
@@ -509,6 +516,7 @@ modalStyle.textContent = `
   .form-input {
 
     width: 100%;
+
     height: 50px;
 
     padding: 0 14px;
@@ -542,6 +550,7 @@ modalStyle.textContent = `
   .form-submit {
 
     width: 100%;
+
     height: 52px;
 
     color: var(--soft-dove);
@@ -587,7 +596,9 @@ modalStyle.textContent = `
 
 `;
 
-document.head.appendChild(modalStyle);
+document.head.appendChild(
+  modalStyle
+);
 
 
 // ========================================
@@ -615,6 +626,7 @@ modal.innerHTML = `
       >
         ITEM 00
       </div>
+
 
       <button
         class="modal-close"
@@ -908,6 +920,544 @@ const formMessage =
 
 
 // ========================================
+// FLOATING STOCK ALERT
+// ========================================
+
+const alertStyle =
+  document.createElement("style");
+
+alertStyle.textContent = `
+
+  .floating-stock-alert {
+
+    position: fixed;
+
+    right: 18px;
+
+    bottom: 92px;
+
+    z-index: 900;
+
+    display: none;
+
+    align-items: center;
+
+    gap: 8px;
+
+    height: 42px;
+
+    padding: 0 14px;
+
+    color:
+      var(--soft-dove);
+
+    background:
+      rgba(57,18,20,.94);
+
+    border:
+      1px solid
+      rgba(192,186,179,.2);
+
+    border-radius: 999px;
+
+    box-shadow:
+      0 12px 35px
+      rgba(0,0,0,.35);
+
+    backdrop-filter:
+      blur(16px);
+
+    -webkit-backdrop-filter:
+      blur(16px);
+
+    font-size: 9px;
+
+    letter-spacing: .05em;
+
+  }
+
+
+  .floating-stock-alert.show {
+
+    display: flex;
+
+  }
+
+
+  .floating-stock-alert svg {
+
+    width: 17px;
+    height: 17px;
+
+    stroke:
+      currentColor;
+
+  }
+
+
+  .floating-stock-alert-count {
+
+    min-width: 19px;
+    height: 19px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 5px;
+
+    color:
+      var(--soft-dove);
+
+    background:
+      rgba(192,186,179,.16);
+
+    border-radius: 999px;
+
+    font-size: 8px;
+
+  }
+
+
+  .alert-panel-overlay {
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 998;
+
+    display: none;
+
+    align-items: flex-end;
+
+    justify-content: center;
+
+    padding: 14px;
+
+    background:
+      rgba(0,0,0,.62);
+
+    backdrop-filter:
+      blur(12px);
+
+    -webkit-backdrop-filter:
+      blur(12px);
+
+  }
+
+
+  .alert-panel-overlay.show {
+
+    display: flex;
+
+  }
+
+
+  .alert-panel {
+
+    width: min(100%, 560px);
+
+    max-height: 78vh;
+
+    overflow-y: auto;
+
+    padding: 20px;
+
+    background:
+      linear-gradient(
+        145deg,
+        rgba(82,66,61,.96),
+        rgba(22,15,12,.98)
+      );
+
+    border:
+      1px solid
+      rgba(192,186,179,.18);
+
+    border-radius: 28px;
+
+    box-shadow:
+      0 30px 80px
+      rgba(0,0,0,.55);
+
+    animation:
+      alertUp .22s ease;
+
+  }
+
+
+  @keyframes alertUp {
+
+    from {
+
+      transform:
+        translateY(30px);
+
+      opacity: 0;
+
+    }
+
+    to {
+
+      transform:
+        translateY(0);
+
+      opacity: 1;
+
+    }
+
+  }
+
+
+  .alert-panel-header {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    margin-bottom: 16px;
+
+  }
+
+
+  .alert-panel-title {
+
+    color:
+      var(--soft-dove);
+
+    font-size: 16px;
+
+    font-weight: 700;
+
+  }
+
+
+  .alert-panel-count {
+
+    color:
+      var(--moon-rock);
+
+    font-size: 9px;
+
+  }
+
+
+  .alert-panel-list {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 9px;
+
+  }
+
+
+  .alert-panel-item {
+
+    width: 100%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 12px;
+
+    padding: 13px;
+
+    color:
+      var(--soft-dove);
+
+    background:
+      rgba(22,15,12,.38);
+
+    border:
+      1px solid
+      rgba(192,186,179,.11);
+
+    border-radius: 17px;
+
+    text-align: left;
+
+  }
+
+
+  .alert-panel-item-main {
+
+    min-width: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+  }
+
+
+  .alert-panel-number {
+
+    width: 34px;
+    height: 34px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    background:
+      rgba(57,18,20,.65);
+
+    border-radius: 10px;
+
+    font-size: 9px;
+
+  }
+
+
+  .alert-panel-info {
+
+    min-width: 0;
+
+  }
+
+
+  .alert-panel-name {
+
+    overflow: hidden;
+
+    color:
+      var(--soft-dove);
+
+    font-size: 10px;
+
+    white-space: nowrap;
+
+    text-overflow: ellipsis;
+
+  }
+
+
+  .alert-panel-th {
+
+    margin-top: 3px;
+
+    overflow: hidden;
+
+    color:
+      var(--moon-rock);
+
+    font-family:
+      "Noto Sans Thai",
+      sans-serif;
+
+    font-size: 8px;
+
+    white-space: nowrap;
+
+    text-overflow: ellipsis;
+
+  }
+
+
+  .alert-panel-stock {
+
+    flex-shrink: 0;
+
+    text-align: right;
+
+  }
+
+
+  .alert-panel-current {
+
+    color:
+      #C77A7A;
+
+    font-size: 15px;
+
+    font-weight: 700;
+
+  }
+
+
+  .alert-panel-min {
+
+    margin-top: 2px;
+
+    color:
+      var(--moon-rock);
+
+    font-size: 8px;
+
+  }
+
+
+  @media (min-width: 700px) {
+
+    .alert-panel-overlay {
+
+      align-items: center;
+
+    }
+
+  }
+
+`;
+
+document.head.appendChild(
+  alertStyle
+);
+
+
+const floatingAlert =
+  document.createElement("button");
+
+floatingAlert.className =
+  "floating-stock-alert";
+
+floatingAlert.innerHTML = `
+
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.7"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+    <path d="M10 21h4"></path>
+  </svg>
+
+  <span>
+    Stock Alert
+  </span>
+
+  <span
+    class="floating-stock-alert-count"
+    id="floatingAlertCount"
+  >
+    0
+  </span>
+
+`;
+
+document.body.appendChild(
+  floatingAlert
+);
+
+
+const alertPanelOverlay =
+  document.createElement("div");
+
+alertPanelOverlay.className =
+  "alert-panel-overlay";
+
+alertPanelOverlay.innerHTML = `
+
+  <div class="alert-panel">
+
+    <div
+      class="alert-panel-header"
+    >
+
+      <div
+        class="alert-panel-title"
+      >
+        Stock Alert
+      </div>
+
+      <div
+        class="alert-panel-count"
+        id="alertPanelCount"
+      >
+        0 items
+      </div>
+
+    </div>
+
+
+    <div
+      class="alert-panel-list"
+      id="alertPanelList"
+    ></div>
+
+  </div>
+
+`;
+
+document.body.appendChild(
+  alertPanelOverlay
+);
+
+
+const floatingAlertCount =
+  document.getElementById(
+    "floatingAlertCount"
+  );
+
+const alertPanelCount =
+  document.getElementById(
+    "alertPanelCount"
+  );
+
+const alertPanelList =
+  document.getElementById(
+    "alertPanelList"
+  );
+
+
+// ========================================
+// FLOATING ALERT EVENTS
+// ========================================
+
+floatingAlert.addEventListener(
+  "click",
+  () => {
+
+    alertPanelOverlay.classList.add(
+      "show"
+    );
+
+    document.body.style.overflow =
+      "hidden";
+
+  }
+);
+
+
+alertPanelOverlay.addEventListener(
+  "click",
+  event => {
+
+    if (
+      event.target ===
+      alertPanelOverlay
+    ) {
+
+      alertPanelOverlay.classList.remove(
+        "show"
+      );
+
+      document.body.style.overflow =
+        "";
+
+    }
+
+  }
+);
+
+
+// ========================================
 // LOAD PRODUCTS
 // ========================================
 
@@ -1009,8 +1559,6 @@ function renderStockAlerts() {
       "Stock Alert elements not found."
     );
 
-    return;
-
   }
 
 
@@ -1083,31 +1631,39 @@ function renderStockAlerts() {
       });
 
 
-  if (!alertItems.length) {
+  // ======================================
+  // FLOATING BUTTON
+  // ======================================
 
-    stockAlertSection.style.display =
-      "none";
+  if (
+    alertItems.length
+  ) {
 
-    stockAlertCount.textContent =
-      "0 items";
+    floatingAlert.classList.add(
+      "show"
+    );
 
-    stockAlertList.innerHTML =
-      "";
+    floatingAlertCount.textContent =
+      alertItems.length;
 
-    return;
+  } else {
+
+    floatingAlert.classList.remove(
+      "show"
+    );
 
   }
 
 
-  stockAlertSection.style.display =
-    "block";
+  // ======================================
+  // ALERT PANEL
+  // ======================================
 
-
-  stockAlertCount.textContent =
+  alertPanelCount.textContent =
     `${alertItems.length} items`;
 
 
-  stockAlertList.innerHTML =
+  alertPanelList.innerHTML =
     alertItems
       .map(item => {
 
@@ -1119,23 +1675,29 @@ function renderStockAlerts() {
         return `
 
           <button
-            class="stock-alert-item"
+            class="alert-panel-item"
             data-product-id="${escapeHtml(
               item.id
             )}"
           >
 
-            <div class="stock-alert-main">
+            <div
+              class="alert-panel-item-main"
+            >
 
-              <div class="stock-alert-number">
+              <div
+                class="alert-panel-number"
+              >
                 ${itemNumber}
               </div>
 
 
-              <div class="stock-alert-info">
+              <div
+                class="alert-panel-info"
+              >
 
                 <div
-                  class="stock-alert-name-en"
+                  class="alert-panel-name"
                 >
                   ${escapeHtml(
                     item.name_en || ""
@@ -1144,7 +1706,7 @@ function renderStockAlerts() {
 
 
                 <div
-                  class="stock-alert-name-th"
+                  class="alert-panel-th"
                 >
                   ${escapeHtml(
                     item.name_th || ""
@@ -1156,10 +1718,12 @@ function renderStockAlerts() {
             </div>
 
 
-            <div class="stock-alert-stock">
+            <div
+              class="alert-panel-stock"
+            >
 
               <div
-                class="stock-alert-current"
+                class="alert-panel-current"
               >
                 ${formatNumber(
                   item.current_stock
@@ -1168,12 +1732,13 @@ function renderStockAlerts() {
 
 
               <div
-                class="stock-alert-min"
+                class="alert-panel-min"
               >
-                /
-                ${formatNumber(
-                  item.min_stock
-                )}
+                MIN ${
+                  formatNumber(
+                    item.min_stock
+                  )
+                }
               </div>
 
             </div>
@@ -1186,9 +1751,9 @@ function renderStockAlerts() {
       .join("");
 
 
-  stockAlertList
+  alertPanelList
     .querySelectorAll(
-      ".stock-alert-item"
+      ".alert-panel-item"
     )
     .forEach(button => {
 
@@ -1206,6 +1771,13 @@ function renderStockAlerts() {
 
 
           if (product) {
+
+            alertPanelOverlay.classList.remove(
+              "show"
+            );
+
+            document.body.style.overflow =
+              "";
 
             openProductDetail(
               product
@@ -1876,7 +2448,6 @@ movementSubmit.addEventListener(
       formMessage.textContent =
         "กรุณาระบุจำนวน";
 
-
       return;
 
     }
@@ -1910,7 +2481,6 @@ movementSubmit.addEventListener(
           )
         }`;
 
-
       return;
 
     }
@@ -1919,10 +2489,8 @@ movementSubmit.addEventListener(
     movementSubmit.disabled =
       true;
 
-
     movementSubmit.textContent =
       "Saving...";
-
 
     formMessage.textContent =
       "";
@@ -1955,18 +2523,14 @@ movementSubmit.addEventListener(
         error
       );
 
-
       formMessage.textContent =
         "บันทึกไม่สำเร็จ";
-
 
       movementSubmit.disabled =
         false;
 
-
       movementSubmit.textContent =
         "Confirm";
-
 
       return;
 
@@ -1987,7 +2551,6 @@ movementSubmit.addEventListener(
 
     movementSubmit.disabled =
       false;
-
 
     movementSubmit.textContent =
       "Confirm";
@@ -2049,7 +2612,7 @@ async function refreshStock() {
 
   if (
     typeof loadDashboard ===
-    "function" &&
+      "function" &&
     dashboardPage &&
     dashboardPage.style.display !==
       "none"
@@ -2773,7 +3336,7 @@ function renderStockPage() {
 
 
 // ========================================
-// PAGE NAVIGATION
+// PAGE NAVIGATION ELEMENTS
 // ========================================
 
 const navHome =
@@ -2807,12 +3370,14 @@ const homeElements = [
     .getElementById("categoryRow")
     ?.closest("section"),
 
-  stockAlertSection,
-
   productGrid
 
 ];
 
+
+// ========================================
+// NAV HELPERS
+// ========================================
 
 function setActiveNav(
   activeButton
@@ -2841,6 +3406,10 @@ function setActiveNav(
 
 }
 
+
+// ========================================
+// HOME
+// ========================================
 
 function showHomePage() {
 
@@ -2878,6 +3447,10 @@ function showHomePage() {
 
 }
 
+
+// ========================================
+// STOCK PAGE
+// ========================================
 
 function showStockPage() {
 
@@ -3091,6 +3664,38 @@ dashboardPage.innerHTML = `
     <div class="section-header">
 
       <div class="section-title">
+        Recent Stock Movements
+      </div>
+
+      <div
+        class="section-count"
+        id="movementCount"
+      >
+        Latest 10
+      </div>
+
+    </div>
+
+
+    <div
+      class="movement-list"
+      id="movementList"
+    >
+
+      <div class="dashboard-loading">
+        Loading...
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div class="dashboard-section">
+
+    <div class="section-header">
+
+      <div class="section-title">
         Inventory Overview
       </div>
 
@@ -3114,7 +3719,9 @@ dashboardPage.innerHTML = `
 
 document
   .querySelector(".app")
-  .appendChild(dashboardPage);
+  .appendChild(
+    dashboardPage
+  );
 
 
 // ========================================
@@ -3238,7 +3845,194 @@ dashboardStyle.textContent = `
 
   .dashboard-section {
 
-    margin-top: 8px;
+    margin-top: 28px;
+
+  }
+
+
+  .movement-list {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 9px;
+
+  }
+
+
+  .movement-item {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 12px;
+
+    padding: 14px;
+
+    background:
+      rgba(82,66,61,.24);
+
+    border:
+      1px solid
+      rgba(192,186,179,.13);
+
+    border-radius: 18px;
+
+  }
+
+
+  .movement-main {
+
+    min-width: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 11px;
+
+  }
+
+
+  .movement-type {
+
+    width: 34px;
+    height: 34px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 11px;
+
+    font-size: 9px;
+
+    font-weight: 700;
+
+  }
+
+
+  .movement-type.in {
+
+    color: #9FA99D;
+
+    background:
+      rgba(159,169,157,.1);
+
+  }
+
+
+  .movement-type.out {
+
+    color: #C77A7A;
+
+    background:
+      rgba(199,122,122,.1);
+
+  }
+
+
+  .movement-info {
+
+    min-width: 0;
+
+  }
+
+
+  .movement-name {
+
+    overflow: hidden;
+
+    color:
+      var(--soft-dove);
+
+    font-size: 10px;
+
+    white-space: nowrap;
+
+    text-overflow: ellipsis;
+
+  }
+
+
+  .movement-meta {
+
+    margin-top: 3px;
+
+    color:
+      var(--moon-rock);
+
+    font-size: 8px;
+
+  }
+
+
+  .movement-right {
+
+    flex-shrink: 0;
+
+    text-align: right;
+
+  }
+
+
+  .movement-quantity {
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+  }
+
+
+  .movement-quantity.in {
+
+    color: #9FA99D;
+
+  }
+
+
+  .movement-quantity.out {
+
+    color: #C77A7A;
+
+  }
+
+
+  .movement-time {
+
+    margin-top: 3px;
+
+    color:
+      var(--moon-rock);
+
+    font-size: 7px;
+
+  }
+
+
+  .movement-empty {
+
+    padding: 30px;
+
+    color:
+      var(--moon-rock);
+
+    text-align: center;
+
+    font-size: 10px;
+
+    background:
+      rgba(82,66,61,.18);
+
+    border-radius: 18px;
 
   }
 
@@ -3502,6 +4296,242 @@ const dashboardOverview =
     "dashboardOverview"
   );
 
+const movementList =
+  document.getElementById(
+    "movementList"
+  );
+
+const movementCount =
+  document.getElementById(
+    "movementCount"
+  );
+
+
+// ========================================
+// LOAD RECENT MOVEMENTS
+// ========================================
+
+async function loadRecentMovements() {
+
+  movementList.innerHTML = `
+    <div class="dashboard-loading">
+      Loading...
+    </div>
+  `;
+
+
+  const result =
+    await supabaseClient
+      .from("stock_movements")
+      .select(`
+        id,
+        movement_type,
+        quantity,
+        note,
+        created_at,
+        product_id,
+        products (
+          item_no,
+          name_en,
+          name_th,
+          unit
+        )
+      `)
+      .order(
+        "created_at",
+        {
+          ascending: false
+        }
+      )
+      .limit(10);
+
+
+  if (result.error) {
+
+    console.error(
+      "Recent movements error:",
+      result.error
+    );
+
+
+    movementList.innerHTML = `
+      <div class="movement-empty">
+        โหลดประวัติไม่สำเร็จ
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  const movements =
+    result.data || [];
+
+
+  movementCount.textContent =
+    `Latest ${movements.length}`;
+
+
+  if (!movements.length) {
+
+    movementList.innerHTML = `
+      <div class="movement-empty">
+        ยังไม่มีประวัติ Stock Movement
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  movementList.innerHTML =
+    movements
+      .map(movement => {
+
+        const product =
+          movement.products;
+
+
+        const isIn =
+          movement.movement_type ===
+          "IN";
+
+
+        const typeClass =
+          isIn
+            ? "in"
+            : "out";
+
+
+        const typeText =
+          isIn
+            ? "IN"
+            : "OUT";
+
+
+        const sign =
+          isIn
+            ? "+"
+            : "-";
+
+
+        const quantity =
+          formatNumber(
+            Number(
+              movement.quantity
+            ) || 0
+          );
+
+
+        const date =
+          new Date(
+            movement.created_at
+          );
+
+
+        const timeText =
+          date.toLocaleString(
+            "en-GB",
+            {
+              day: "2-digit",
+              month: "short",
+              hour: "2-digit",
+              minute: "2-digit"
+            }
+          );
+
+
+        const note =
+          movement.note
+            ? ` · ${escapeHtml(
+                movement.note
+              )}`
+            : "";
+
+
+        return `
+
+          <div
+            class="movement-item"
+          >
+
+            <div
+              class="movement-main"
+            >
+
+              <div
+                class="
+                  movement-type
+                  ${typeClass}
+                "
+              >
+                ${typeText}
+              </div>
+
+
+              <div
+                class="movement-info"
+              >
+
+                <div
+                  class="movement-name"
+                >
+                  ${escapeHtml(
+                    product?.name_en ||
+                    "Unknown Product"
+                  )}
+                </div>
+
+
+                <div
+                  class="movement-meta"
+                >
+                  ITEM ${
+                    String(
+                      product?.item_no ??
+                      ""
+                    ).padStart(2,"0")
+                  }${note}
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div
+              class="movement-right"
+            >
+
+              <div
+                class="
+                  movement-quantity
+                  ${typeClass}
+                "
+              >
+                ${sign}${quantity}
+              </div>
+
+
+              <div
+                class="movement-time"
+              >
+                ${timeText}
+              </div>
+
+            </div>
+
+          </div>
+
+        `;
+
+      })
+      .join("");
+
+}
+
 
 // ========================================
 // LOAD DASHBOARD
@@ -3711,6 +4741,13 @@ async function loadDashboard() {
 
 
   // ======================================
+  // RECENT MOVEMENTS
+  // ======================================
+
+  await loadRecentMovements();
+
+
+  // ======================================
   // INVENTORY OVERVIEW
   // ======================================
 
@@ -3760,7 +4797,7 @@ async function loadDashboard() {
               >
                 ${String(
                   product.item_no
-                ).padStart(2, "0")}
+                ).padStart(2,"0")}
               </div>
 
 
