@@ -42,8 +42,6 @@ const categoryRow =
   document.getElementById("categoryRow");
 
 
-// Stock Alert
-
 const stockAlertSection =
   document.getElementById(
     "stockAlertSection"
@@ -72,15 +70,12 @@ modalStyle.textContent = `
   .stock-modal-overlay {
 
     position: fixed;
-
     inset: 0;
-
     z-index: 999;
 
     display: none;
 
     align-items: flex-end;
-
     justify-content: center;
 
     padding: 14px;
@@ -114,7 +109,6 @@ modalStyle.textContent = `
     color: var(--soft-dove);
 
     background:
-
       linear-gradient(
         145deg,
         rgba(82, 66, 61, 0.92),
@@ -159,13 +153,10 @@ modalStyle.textContent = `
   .modal-top {
 
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
 
     gap: 15px;
-
     margin-bottom: 18px;
 
   }
@@ -179,7 +170,6 @@ modalStyle.textContent = `
     flex-shrink: 0;
 
     display: flex;
-
     align-items: center;
     justify-content: center;
 
@@ -307,7 +297,6 @@ modalStyle.textContent = `
     display: flex;
 
     justify-content: space-between;
-
     align-items: center;
 
     margin-bottom: 12px;
@@ -416,7 +405,6 @@ modalStyle.textContent = `
     display: flex;
 
     align-items: center;
-
     justify-content: center;
 
     gap: 9px;
@@ -476,7 +464,6 @@ modalStyle.textContent = `
     display: none;
 
     margin-top: 16px;
-
     padding-top: 16px;
 
     border-top:
@@ -522,7 +509,6 @@ modalStyle.textContent = `
   .form-input {
 
     width: 100%;
-
     height: 50px;
 
     padding: 0 14px;
@@ -556,7 +542,6 @@ modalStyle.textContent = `
   .form-submit {
 
     width: 100%;
-
     height: 52px;
 
     color: var(--soft-dove);
@@ -831,7 +816,10 @@ document.body.appendChild(modal);
 // MODAL ELEMENTS
 // ========================================
 
-const modalOverlay = document.querySelector(".stock-modal-overlay");
+const modalOverlay =
+  document.querySelector(
+    ".stock-modal-overlay"
+  );
 
 const modalClose =
   document.getElementById(
@@ -932,8 +920,6 @@ async function loadProducts() {
   `;
 
 
-  // Load products
-
   const productsResult =
     await supabaseClient
       .from("products")
@@ -958,14 +944,13 @@ async function loadProducts() {
     `;
 
     return;
+
   }
 
 
   allProducts =
     productsResult.data || [];
 
-
-  // Load current stock
 
   const stockResult =
     await supabaseClient
@@ -997,17 +982,9 @@ async function loadProducts() {
   }
 
 
-  // Build category
-
   buildCategories();
 
-
-  // Render Stock Alert
-
   renderStockAlerts();
-
-
-  // Render products
 
   renderProducts(
     allProducts
@@ -1021,9 +998,6 @@ async function loadProducts() {
 // ========================================
 
 function renderStockAlerts() {
-
-  // ถ้า HTML ไม่มีส่วน Alert
-  // ไม่ทำอะไร
 
   if (
     !stockAlertSection ||
@@ -1040,9 +1014,6 @@ function renderStockAlerts() {
   }
 
 
-  // หาสินค้าที่ Current Stock
-  // น้อยกว่าหรือเท่ากับ Minimum Stock
-
   const alertItems =
     allProducts
       .map(product => {
@@ -1053,13 +1024,17 @@ function renderStockAlerts() {
 
         const currentStock =
           stock
-            ? Number(stock.current_stock)
+            ? Number(
+                stock.current_stock
+              )
             : 0;
 
 
         const minStock =
           stock
-            ? Number(stock.min_stock)
+            ? Number(
+                stock.min_stock
+              )
             : Number(
                 product.min_stock || 5
               );
@@ -1100,7 +1075,6 @@ function renderStockAlerts() {
 
         }
 
-
         return (
           a.item_no -
           b.item_no
@@ -1108,8 +1082,6 @@ function renderStockAlerts() {
 
       });
 
-
-  // ไม่มีรายการ Low Stock
 
   if (!alertItems.length) {
 
@@ -1126,8 +1098,6 @@ function renderStockAlerts() {
 
   }
 
-
-  // มีรายการ Low Stock
 
   stockAlertSection.style.display =
     "block";
@@ -1215,9 +1185,6 @@ function renderStockAlerts() {
       })
       .join("");
 
-
-  // Click Alert
-  // → เปิด Product Detail
 
   stockAlertList
     .querySelectorAll(
@@ -1599,8 +1566,6 @@ function renderProducts(
       .join("");
 
 
-  // Card click
-
   productGrid
     .querySelectorAll(
       ".product-card"
@@ -1917,8 +1882,6 @@ movementSubmit.addEventListener(
     }
 
 
-    // Current stock
-
     const stock =
       stockMap[
         selectedProduct.id
@@ -1932,9 +1895,6 @@ movementSubmit.addEventListener(
           )
         : 0;
 
-
-    // ป้องกัน Stock Out
-    // มากกว่าสต็อกที่มี
 
     if (
       selectedMovementType ===
@@ -1967,8 +1927,6 @@ movementSubmit.addEventListener(
     formMessage.textContent =
       "";
 
-
-    // Insert movement
 
     const { error } =
       await supabaseClient
@@ -2019,12 +1977,8 @@ movementSubmit.addEventListener(
       "บันทึกสำเร็จ";
 
 
-    // Refresh stock
-
     await refreshStock();
 
-
-    // Refresh detail
 
     openProductDetail(
       selectedProduct
@@ -2061,7 +2015,6 @@ async function refreshStock() {
       error
     );
 
-
     return;
 
   }
@@ -2079,14 +2032,32 @@ async function refreshStock() {
     });
 
 
-  // Update Stock Alert
-
   renderStockAlerts();
 
-
-  // Update Product Cards
-
   applyFilters();
+
+
+  if (
+    typeof renderStockPage ===
+    "function"
+  ) {
+
+    renderStockPage();
+
+  }
+
+
+  if (
+    typeof loadDashboard ===
+    "function" &&
+    dashboardPage &&
+    dashboardPage.style.display !==
+      "none"
+  ) {
+
+    await loadDashboard();
+
+  }
 
 }
 
@@ -2156,6 +2127,7 @@ function escapeHtml(
 
 }
 
+
 // ========================================
 // STOCK PAGE
 // ========================================
@@ -2163,9 +2135,11 @@ function escapeHtml(
 const stockPage =
   document.createElement("section");
 
-stockPage.id = "stockPage";
+stockPage.id =
+  "stockPage";
 
-stockPage.style.display = "none";
+stockPage.style.display =
+  "none";
 
 stockPage.innerHTML = `
 
@@ -2888,6 +2862,10 @@ function showHomePage() {
     "none";
 
 
+  dashboardPage.style.display =
+    "none";
+
+
   setActiveNav(
     navHome
   );
@@ -2915,6 +2893,10 @@ function showStockPage() {
 
     }
   );
+
+
+  dashboardPage.style.display =
+    "none";
 
 
   stockPage.style.display =
@@ -2949,37 +2931,6 @@ navStock.addEventListener(
 );
 
 
-// Catalog / Dashboard
-// ยังไม่เปิดใช้งาน
-
-navCatalog.addEventListener(
-  "click",
-  () => {
-
-    showHomePage();
-
-    alert(
-      "Catalog จะเปิดใช้งานในขั้นถัดไป"
-    );
-
-  }
-);
-
-
-navDashboard.addEventListener(
-  "click",
-  () => {
-
-    showHomePage();
-
-    alert(
-      "Dashboard จะเปิดใช้งานในขั้นถัดไป"
-    );
-
-  }
-);
-
-
 // ========================================
 // DASHBOARD PAGE
 // ========================================
@@ -2987,9 +2938,11 @@ navDashboard.addEventListener(
 const dashboardPage =
   document.createElement("section");
 
-dashboardPage.id = "dashboardPage";
+dashboardPage.id =
+  "dashboardPage";
 
-dashboardPage.style.display = "none";
+dashboardPage.style.display =
+  "none";
 
 dashboardPage.innerHTML = `
 
@@ -3677,8 +3630,10 @@ async function loadDashboard() {
       movementResult.error
     );
 
+
     dashboardStockInToday.textContent =
       "—";
+
 
     dashboardStockOutToday.textContent =
       "—";
@@ -3874,7 +3829,7 @@ async function loadDashboard() {
 
 
 // ========================================
-// PAGE NAVIGATION
+// DASHBOARD NAVIGATION
 // ========================================
 
 function showDashboardPage() {
@@ -3922,12 +3877,31 @@ navDashboard.onclick =
 
 
 // ========================================
+// CATALOG
+// ========================================
+
+navCatalog.addEventListener(
+  "click",
+  () => {
+
+    showHomePage();
+
+    alert(
+      "Catalog จะเปิดใช้งานในขั้นถัดไป"
+    );
+
+  }
+);
+
+
+// ========================================
 // REFRESH DASHBOARD
 // ========================================
 
 async function refreshDashboard() {
 
   await refreshStock();
+
 
   if (
     dashboardPage.style.display !==
@@ -3946,4 +3920,3 @@ async function refreshDashboard() {
 // ========================================
 
 loadProducts();
-
