@@ -831,10 +831,7 @@ document.body.appendChild(modal);
 // MODAL ELEMENTS
 // ========================================
 
-const modalOverlay =
-  document.getElementById(
-    "stockModal"
-  );
+const modalOverlay = document.querySelector(".stock-modal-overlay");
 
 const modalClose =
   document.getElementById(
