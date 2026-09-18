@@ -49,13 +49,19 @@ const categoryRow =
   document.getElementById("categoryRow");
 
 const stockAlertSection =
-  document.getElementById("stockAlertSection");
+  document.getElementById(
+    "stockAlertSection"
+  );
 
 const stockAlertList =
-  document.getElementById("stockAlertList");
+  document.getElementById(
+    "stockAlertList"
+  );
 
 const stockAlertCount =
-  document.getElementById("stockAlertCount");
+  document.getElementById(
+    "stockAlertCount"
+  );
 
 
 // ========================================
@@ -257,7 +263,9 @@ modalStyle.textContent = `
   border-radius: 18px;
   border: 1px solid rgba(192,186,179,.14);
   font-size: 11px;
-  transition: transform .2s ease,background .2s ease;
+  transition:
+    transform .2s ease,
+    background .2s ease;
 }
 
 .stock-action:hover {
@@ -345,7 +353,9 @@ modalStyle.textContent = `
 
 `;
 
-document.head.appendChild(modalStyle);
+document.head.appendChild(
+  modalStyle
+);
 
 
 // ========================================
@@ -849,7 +859,9 @@ alertStyle.textContent = `
 
 `;
 
-document.head.appendChild(alertStyle);
+document.head.appendChild(
+  alertStyle
+);
 
 
 const floatingAlert =
@@ -1072,18 +1084,6 @@ async function loadProducts() {
 
 function renderStockAlerts() {
 
-  if (
-    !stockAlertSection ||
-    !stockAlertList ||
-    !stockAlertCount
-  ) {
-
-    console.warn(
-      "Stock Alert elements not found."
-    );
-
-  }
-
   const alertItems =
     allProducts
       .map(product => {
@@ -1141,7 +1141,11 @@ function renderStockAlerts() {
 
       });
 
-  // Floating
+
+  // ======================================
+  // FLOATING ALERT
+  // ======================================
+
   if (alertItems.length) {
 
     floatingAlert.classList.add(
@@ -1159,94 +1163,27 @@ function renderStockAlerts() {
 
   }
 
-  // Home Stock Alert
+
+  // ======================================
+  // IMPORTANT:
+  // HOME STOCK ALERT SECTION IS HIDDEN
+  // ======================================
+
   if (stockAlertSection) {
 
-    if (alertItems.length) {
-
-      stockAlertSection.style.display =
-        "";
-
-    } else {
-
-      stockAlertSection.style.display =
-        "none";
-
-    }
+    stockAlertSection.style.display =
+      "none";
 
   }
 
-  stockAlertCount.textContent =
-    `${alertItems.length} items`;
+
+  // ======================================
+  // FLOATING ALERT PANEL
+  // ======================================
 
   alertPanelCount.textContent =
     `${alertItems.length} items`;
 
-  stockAlertList.innerHTML =
-    alertItems
-      .map(item => {
-
-        const itemNumber =
-          String(item.item_no)
-            .padStart(2,"0");
-
-        return `
-
-          <button
-            class="stock-alert-item"
-            data-product-id="${escapeHtml(
-              item.id
-            )}"
-          >
-
-            <div class="stock-alert-item-main">
-
-              <div class="stock-alert-number">
-                ${itemNumber}
-              </div>
-
-              <div class="stock-alert-info">
-
-                <div class="stock-alert-name">
-                  ${escapeHtml(
-                    item.name_en || ""
-                  )}
-                </div>
-
-                <div class="stock-alert-th">
-                  ${escapeHtml(
-                    item.name_th || ""
-                  )}
-                </div>
-
-              </div>
-
-            </div>
-
-            <div class="stock-alert-stock">
-
-              <div class="stock-alert-current">
-                ${formatNumber(
-                  item.current_stock
-                )}
-              </div>
-
-              <div class="stock-alert-min">
-                MIN ${
-                  formatNumber(
-                    item.min_stock
-                  )
-                }
-              </div>
-
-            </div>
-
-          </button>
-
-        `;
-
-      })
-      .join("");
 
   alertPanelList.innerHTML =
     alertItems
@@ -1314,42 +1251,7 @@ function renderStockAlerts() {
       })
       .join("");
 
-  // Home alert click
-  if (stockAlertList) {
 
-    stockAlertList
-      .querySelectorAll(
-        ".stock-alert-item"
-      )
-      .forEach(button => {
-
-        button.addEventListener(
-          "click",
-          () => {
-
-            const product =
-              allProducts.find(
-                item =>
-                  item.id ===
-                  button.dataset.productId
-              );
-
-            if (product) {
-
-              openProductDetail(
-                product
-              );
-
-            }
-
-          }
-        );
-
-      });
-
-  }
-
-  // Floating alert click
   alertPanelList
     .querySelectorAll(
       ".alert-panel-item"
@@ -2077,7 +1979,6 @@ movementSubmit.addEventListener(
 
     await refreshStock();
 
-    // Refresh Calendar
     if (
       typeof loadCalendarMovements ===
       "function"
@@ -2731,6 +2632,11 @@ const navDashboard =
   );
 
 
+// IMPORTANT:
+// stockAlertSection is intentionally NOT
+// included in Home page elements.
+// The floating alert handles alerts.
+
 const homeElements = [
 
   document.querySelector(".hero"),
@@ -2740,8 +2646,6 @@ const homeElements = [
   document
     .getElementById("categoryRow")
     ?.closest("section"),
-
-  stockAlertSection,
 
   productGrid
 
@@ -2798,6 +2702,14 @@ function showHomePage() {
     }
   );
 
+  // Always hide the static Stock Alert
+  if (stockAlertSection) {
+
+    stockAlertSection.style.display =
+      "none";
+
+  }
+
   stockPage.style.display =
     "none";
 
@@ -2817,7 +2729,7 @@ function showHomePage() {
 
 
 // ========================================
-// STOCK PAGE NAV
+// STOCK PAGE
 // ========================================
 
 function showStockPage() {
@@ -2834,6 +2746,13 @@ function showStockPage() {
 
     }
   );
+
+  if (stockAlertSection) {
+
+    stockAlertSection.style.display =
+      "none";
+
+  }
 
   dashboardPage.style.display =
     "none";
@@ -3983,8 +3902,6 @@ function getBangkokMonthRange(
   month
 ) {
 
-  // Bangkok = UTC+07:00
-
   const start =
     new Date(
       `${year}-${String(
@@ -4294,21 +4211,19 @@ async function loadDashboard() {
       now
     );
 
-  const startISO =
+  const startDate =
     new Date(
       `${todayKey}T00:00:00+07:00`
-    ).toISOString();
-
-  const endDate =
-    new Date(
-      new Date(
-        `${todayKey}T00:00:00+07:00`
-      ).getTime() +
-      24 * 60 * 60 * 1000
     );
 
+  const startISO =
+    startDate.toISOString();
+
   const endISO =
-    endDate.toISOString();
+    new Date(
+      startDate.getTime() +
+      24 * 60 * 60 * 1000
+    ).toISOString();
 
   const movementResult =
     await supabaseClient
@@ -4670,10 +4585,6 @@ function renderCalendar() {
     `${monthShort} ${year}`;
 
 
-  // ======================================
-  // GROUP MOVEMENTS BY BANGKOK DATE
-  // ======================================
-
   const movementByDate = {};
 
   calendarMovements.forEach(
@@ -4701,10 +4612,6 @@ function renderCalendar() {
   );
 
 
-  // ======================================
-  // CALENDAR DAYS
-  // ======================================
-
   const firstDay =
     new Date(
       year,
@@ -4719,7 +4626,6 @@ function renderCalendar() {
       0
     ).getDate();
 
-  // Monday = 0
   let startOffset =
     firstDay.getDay() - 1;
 
@@ -4840,8 +4746,6 @@ function renderCalendar() {
     });
 
 
-  // Automatically select today
-  // when current month is current month
   if (
     !selectedCalendarDate
   ) {
@@ -5200,15 +5104,26 @@ function showDashboardPage() {
     }
   );
 
+
+  if (stockAlertSection) {
+
+    stockAlertSection.style.display =
+      "none";
+
+  }
+
+
   stockPage.style.display =
     "none";
 
   dashboardPage.style.display =
     "block";
 
+
   setActiveNav(
     navDashboard
   );
+
 
   window.scrollTo({
     top: 0,
@@ -5216,10 +5131,8 @@ function showDashboardPage() {
   });
 
 
-  // Dashboard data
   loadDashboard();
 
-  // Calendar
   loadCalendarMovements();
 
 }
@@ -5272,5 +5185,15 @@ async function refreshDashboard() {
 // ========================================
 // START
 // ========================================
+
+// Make absolutely sure the static
+// Home Stock Alert is hidden.
+
+if (stockAlertSection) {
+
+  stockAlertSection.style.display =
+    "none";
+
+}
 
 loadProducts();
