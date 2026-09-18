@@ -351,6 +351,66 @@ modalStyle.textContent = `
   }
 }
 
+.quantity-counter {
+  display: grid;
+  grid-template-columns: 58px 1fr 58px;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.quantity-button {
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--soft-dove);
+  background: rgba(82,66,61,.55);
+  border: 1px solid rgba(192,186,179,.16);
+  border-radius: 16px;
+  font-size: 25px;
+  line-height: 1;
+  transition: transform .15s ease;
+}
+
+.quantity-button:active {
+  transform: scale(.94);
+}
+
+.quantity-value {
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--soft-dove);
+  background: rgba(22,15,12,.55);
+  border: 1px solid rgba(192,186,179,.14);
+  border-radius: 16px;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.quantity-presets {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+  margin-bottom: 14px;
+}
+
+.quantity-preset {
+  height: 38px;
+  color: var(--soft-dove);
+  background: rgba(57,18,20,.55);
+  border: 1px solid rgba(192,186,179,.13);
+  border-radius: 12px;
+  font-size: 9px;
+  transition: transform .15s ease;
+}
+
+.quantity-preset:active {
+  transform: scale(.95);
+}
+
 `;
 
 document.head.appendChild(
@@ -517,17 +577,71 @@ modal.innerHTML = `
     </div>
 
     <label class="form-label">
-      Quantity
-    </label>
+  Quantity
+</label>
 
-    <input
-      class="form-input"
-      id="movementQuantity"
-      type="number"
-      min="0.01"
-      step="any"
-      placeholder="Enter quantity"
-    />
+<div class="quantity-counter">
+
+  <button
+    type="button"
+    class="quantity-button"
+    id="quantityMinus"
+  >
+    −
+  </button>
+
+  <div
+    class="quantity-value"
+    id="quantityValue"
+  >
+    1
+  </div>
+
+  <button
+    type="button"
+    class="quantity-button"
+    id="quantityPlus"
+  >
+    +
+  </button>
+
+</div>
+
+<div class="quantity-presets">
+
+  <button
+    type="button"
+    class="quantity-preset"
+    data-add="5"
+  >
+    +5
+  </button>
+
+  <button
+    type="button"
+    class="quantity-preset"
+    data-add="10"
+  >
+    +10
+  </button>
+
+  <button
+    type="button"
+    class="quantity-preset"
+    data-add="50"
+  >
+    +50
+  </button>
+
+  <button
+    type="button"
+    class="quantity-preset"
+    data-add="100"
+  >
+    +100
+  </button>
+
+</div>
 
     <label class="form-label">
       Note
@@ -636,10 +750,27 @@ const movementTitle =
     "movementTitle"
   );
 
-const movementQuantity =
+const quantityMinus =
   document.getElementById(
-    "movementQuantity"
+    "quantityMinus"
   );
+
+const quantityPlus =
+  document.getElementById(
+    "quantityPlus"
+  );
+
+const quantityValue =
+  document.getElementById(
+    "quantityValue"
+  );
+
+const quantityPresets =
+  document.querySelectorAll(
+    ".quantity-preset"
+  );
+
+let movementQuantityValue = 1;
 
 const movementNote =
   document.getElementById(
@@ -1722,8 +1853,8 @@ function openProductDetail(
     "show"
   );
 
-  movementQuantity.value =
-    "";
+  movementQuantityValue =
+    1;
 
   movementNote.value =
     "";
@@ -1819,11 +1950,13 @@ stockInButton.addEventListener(
     movementTitle.textContent =
       "Stock In";
 
-    movementForm.classList.add(
-      "show"
-    );
+    movementQuantityValue =
+      1;
 
-    movementQuantity.focus();
+    updateQuantityDisplay();
+
+    movementForm.classList
+      .add("show");
 
     formMessage.textContent =
       "";
@@ -1846,11 +1979,13 @@ stockOutButton.addEventListener(
     movementTitle.textContent =
       "Stock Out";
 
-    movementForm.classList.add(
-      "show"
-    );
+    movementQuantityValue =
+      1;
 
-    movementQuantity.focus();
+    updateQuantityDisplay();
+
+    movementForm.classList
+      .add("show");
 
     formMessage.textContent =
       "";
@@ -1858,6 +1993,201 @@ stockOutButton.addEventListener(
   }
 );
 
+// ========================================
+// QUANTITY COUNTER
+// ========================================
+
+function getCurrentProductStock() {
+
+  if (!selectedProduct) {
+
+    return 0;
+
+  }
+
+  const stock =
+    stockMap[
+      selectedProduct.id
+    ];
+
+  return stock
+    ? Number(
+        stock.current_stock
+      ) || 0
+    : 0;
+
+}
+
+
+function updateQuantityDisplay() {
+
+  if (!quantityValue) {
+
+    return;
+
+  }
+
+  if (
+    selectedMovementType ===
+    "OUT"
+  ) {
+
+    const currentStock =
+      getCurrentProductStock();
+
+    if (
+      currentStock <= 0
+    ) {
+
+      movementQuantityValue =
+        0;
+
+    } else if (
+      movementQuantityValue >
+      currentStock
+    ) {
+
+      movementQuantityValue =
+        currentStock;
+
+    }
+
+  }
+
+
+  if (
+    movementQuantityValue < 1 &&
+    selectedMovementType === "IN"
+  ) {
+
+    movementQuantityValue =
+      1;
+
+  }
+
+
+  quantityValue.textContent =
+    formatNumber(
+      movementQuantityValue
+    );
+
+}
+
+
+// ========================================
+// MINUS
+// ========================================
+
+quantityMinus.addEventListener(
+  "click",
+  () => {
+
+    if (
+      movementQuantityValue <=
+      1
+    ) {
+
+      return;
+
+    }
+
+    movementQuantityValue--;
+
+    updateQuantityDisplay();
+
+  }
+);
+
+
+// ========================================
+// PLUS
+// ========================================
+
+quantityPlus.addEventListener(
+  "click",
+  () => {
+
+    const currentStock =
+      getCurrentProductStock();
+
+
+    if (
+      selectedMovementType ===
+      "OUT" &&
+      movementQuantityValue >=
+      currentStock
+    ) {
+
+      return;
+
+    }
+
+
+    movementQuantityValue++;
+
+    updateQuantityDisplay();
+
+  }
+);
+
+
+// ========================================
+// QUICK ADD
+// ========================================
+
+quantityPresets.forEach(
+  button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        const amount =
+          Number(
+            button.dataset.add
+          ) || 0;
+
+
+        if (!amount) {
+
+          return;
+
+        }
+
+
+        movementQuantityValue +=
+          amount;
+
+
+        if (
+          selectedMovementType ===
+          "OUT"
+        ) {
+
+          const currentStock =
+            getCurrentProductStock();
+
+
+          if (
+            movementQuantityValue >
+            currentStock
+          ) {
+
+            movementQuantityValue =
+              currentStock;
+
+          }
+
+        }
+
+
+        updateQuantityDisplay();
+
+      }
+    );
+
+  }
+);
 
 // ========================================
 // SUBMIT STOCK MOVEMENT
@@ -1877,9 +2207,9 @@ movementSubmit.addEventListener(
     }
 
     const quantity =
-      Number(
-        movementQuantity.value
-      );
+  Number(
+    movementQuantityValue
+  );
 
     const note =
       movementNote.value.trim();
