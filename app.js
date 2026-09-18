@@ -63,6 +63,580 @@ const stockAlertCount =
     "stockAlertCount"
   );
 
+// ========================================
+// AI FLOATING BUTTON
+// ========================================
+
+const aiFloatingStyle =
+  document.createElement("style");
+
+aiFloatingStyle.textContent = `
+
+.ai-floating-button {
+  position: fixed;
+  right: 18px;
+  bottom: 148px;
+  z-index: 950;
+
+  width: 58px;
+  height: 58px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--soft-dove);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(82,66,61,.96),
+      rgba(22,15,12,.98)
+    );
+
+  border:
+    1px solid
+    rgba(192,186,179,.24);
+
+  border-radius: 50%;
+
+  box-shadow:
+    0 16px 40px rgba(0,0,0,.42),
+    inset 0 1px 0 rgba(255,255,255,.08);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  font-family: "Goldman", sans-serif;
+  font-size: 12px;
+  letter-spacing: .03em;
+
+  cursor: pointer;
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease;
+}
+
+.ai-floating-button:hover {
+  transform: translateY(-3px) scale(1.03);
+
+  box-shadow:
+    0 20px 48px rgba(0,0,0,.5),
+    inset 0 1px 0 rgba(255,255,255,.1);
+}
+
+.ai-floating-button:active {
+  transform: scale(.94);
+}
+
+.ai-floating-symbol {
+  font-size: 13px;
+  margin-right: 2px;
+}
+
+@media (max-width: 699px) {
+
+  .ai-floating-button {
+    right: 16px;
+    bottom: 88px;
+    width: 54px;
+    height: 54px;
+  }
+
+}
+
+`;
+
+document.head.appendChild(
+  aiFloatingStyle
+);
+// ========================================
+// AI ASSISTANT MODAL
+// ========================================
+
+const aiModal =
+  document.createElement("div");
+
+aiModal.className =
+  "ai-modal-overlay";
+
+aiModal.innerHTML = `
+
+<div class="ai-modal">
+
+  <div class="ai-header">
+
+    <div>
+
+      <div class="ai-title">
+        ✦ Balenrista AI
+      </div>
+
+      <div class="ai-subtitle">
+        Stock Assistant
+      </div>
+
+    </div>
+
+    <button
+      class="ai-close"
+      id="aiClose"
+    >
+      ×
+    </button>
+
+  </div>
+
+
+  <div
+    class="ai-suggestions"
+    id="aiSuggestions"
+  >
+
+    <button data-question="ชาไทยเหลือเท่าไหร่?">
+      ชาไทยเหลือเท่าไหร่?
+    </button>
+
+    <button data-question="อะไรใกล้หมดบ้าง?">
+      อะไรใกล้หมดบ้าง?
+    </button>
+
+    <button data-question="วันนี้มี Stock Out อะไรบ้าง?">
+      วันนี้มีอะไรออกบ้าง?
+    </button>
+
+  </div>
+
+
+  <div
+    class="ai-messages"
+    id="aiMessages"
+  >
+
+    <div class="ai-message ai-message-bot">
+
+      สวัสดีครับ 👋<br><br>
+
+      ผมช่วยดูข้อมูลสต็อกของ
+      Balenrista ให้ได้ครับ
+
+      <br><br>
+
+      ลองถามได้เลย เช่น<br>
+
+      • ชาไทยเหลือเท่าไหร่?<br>
+      • อะไรใกล้หมด?<br>
+      • วันนี้มีของอะไรออกบ้าง?<br>
+      • เดือนนี้ใช้อะไรเยอะสุด?
+
+    </div>
+
+  </div>
+
+
+  <div class="ai-input-area">
+
+    <input
+      id="aiInput"
+      type="text"
+      autocomplete="off"
+      placeholder="ถามเรื่องสต็อก..."
+    />
+
+    <button
+      id="aiSend"
+    >
+      ➤
+    </button>
+
+  </div>
+
+</div>
+
+`;
+
+document.body.appendChild(
+  aiModal
+);
+
+const aiModalStyle =
+  document.createElement("style");
+
+aiModalStyle.textContent = `
+
+.ai-modal-overlay {
+
+  position: fixed;
+  inset: 0;
+
+  z-index: 1200;
+
+  display: none;
+
+  align-items: flex-end;
+  justify-content: center;
+
+  padding: 14px;
+
+  background:
+    rgba(0,0,0,.65);
+
+  backdrop-filter:
+    blur(14px);
+
+  -webkit-backdrop-filter:
+    blur(14px);
+
+}
+
+.ai-modal-overlay.show {
+  display: flex;
+}
+
+.ai-modal {
+
+  width: min(100%, 560px);
+
+  height: min(78vh, 680px);
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  color: var(--soft-dove);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(82,66,61,.97),
+      rgba(22,15,12,.99)
+    );
+
+  border:
+    1px solid
+    rgba(192,186,179,.18);
+
+  border-radius: 30px;
+
+  box-shadow:
+    0 30px 90px
+    rgba(0,0,0,.58);
+
+  animation:
+    aiModalUp .25s ease;
+
+}
+
+@keyframes aiModalUp {
+
+  from {
+    transform:
+      translateY(30px);
+
+    opacity: 0;
+  }
+
+  to {
+    transform:
+      translateY(0);
+
+    opacity: 1;
+  }
+
+}
+
+
+.ai-header {
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 20px;
+
+  border-bottom:
+    1px solid
+    rgba(192,186,179,.1);
+
+}
+
+
+.ai-title {
+
+  font-family:
+    "Goldman",
+    sans-serif;
+
+  font-size: 15px;
+
+}
+
+
+.ai-subtitle {
+
+  margin-top: 4px;
+
+  color:
+    var(--moon-rock);
+
+  font-size: 9px;
+
+  letter-spacing:
+    .12em;
+
+  text-transform:
+    uppercase;
+
+}
+
+
+.ai-close {
+
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  color:
+    var(--soft-dove);
+
+  background:
+    rgba(192,186,179,.07);
+
+  border:
+    1px solid
+    rgba(192,186,179,.13);
+
+  border-radius: 50%;
+
+  font-size: 22px;
+
+}
+
+
+.ai-suggestions {
+
+  display: flex;
+
+  gap: 7px;
+
+  padding:
+    12px 16px;
+
+  overflow-x: auto;
+
+}
+
+
+.ai-suggestions button {
+
+  flex-shrink: 0;
+
+  padding:
+    9px 12px;
+
+  color:
+    var(--soft-dove);
+
+  background:
+    rgba(192,186,179,.07);
+
+  border:
+    1px solid
+    rgba(192,186,179,.12);
+
+  border-radius:
+    999px;
+
+  font-family:
+    "Noto Sans Thai",
+    sans-serif;
+
+  font-size: 9px;
+
+}
+
+
+.ai-messages {
+
+  flex: 1;
+
+  overflow-y: auto;
+
+  padding:
+    10px 16px 18px;
+
+}
+
+
+.ai-message {
+
+  max-width: 88%;
+
+  padding:
+    12px 14px;
+
+  margin-bottom:
+    10px;
+
+  border-radius:
+    17px;
+
+  font-family:
+    "Noto Sans Thai",
+    sans-serif;
+
+  font-size: 11px;
+
+  line-height: 1.7;
+
+}
+
+
+.ai-message-bot {
+
+  background:
+    rgba(192,186,179,.07);
+
+  border:
+    1px solid
+    rgba(192,186,179,.1);
+
+}
+
+
+.ai-message-user {
+
+  margin-left: auto;
+
+  background:
+    rgba(57,18,20,.78);
+
+  border:
+    1px solid
+    rgba(192,186,179,.12);
+
+}
+
+
+.ai-input-area {
+
+  display: flex;
+
+  gap: 8px;
+
+  padding: 12px 14px;
+
+  border-top:
+    1px solid
+    rgba(192,186,179,.1);
+
+}
+
+
+.ai-input-area input {
+
+  flex: 1;
+
+  height: 48px;
+
+  padding:
+    0 14px;
+
+  color:
+    var(--soft-dove);
+
+  background:
+    rgba(22,15,12,.6);
+
+  border:
+    1px solid
+    rgba(192,186,179,.13);
+
+  border-radius:
+    15px;
+
+  outline: none;
+
+  font-family:
+    "Noto Sans Thai",
+    sans-serif;
+
+  font-size: 11px;
+
+}
+
+
+.ai-input-area button {
+
+  width: 48px;
+  height: 48px;
+
+  flex-shrink: 0;
+
+  color:
+    var(--soft-dove);
+
+  background:
+    rgba(57,18,20,.9);
+
+  border:
+    1px solid
+    rgba(192,186,179,.15);
+
+  border-radius:
+    15px;
+
+  font-size: 16px;
+
+}
+
+
+@media (min-width:700px) {
+
+  .ai-modal-overlay {
+    align-items: center;
+  }
+
+}
+
+`;
+
+document.head.appendChild(
+  aiModalStyle
+);
+
+// ========================================
+// AI FLOATING BUTTON
+// ========================================
+
+const aiButton =
+  document.createElement("button");
+
+aiButton.className =
+  "ai-floating-button";
+
+aiButton.innerHTML = `
+  <span class="ai-floating-symbol">
+    ✦
+  </span>
+  AI
+`;
+
+aiButton.setAttribute(
+  "aria-label",
+  "Open Balenrista AI"
+);
+
+document.body.appendChild(
+  aiButton
+);
 
 // ========================================
 // MODAL STYLE
@@ -8570,6 +9144,789 @@ async function refreshDashboard() {
   setupRealtime();
 
 })();
+
+// ========================================
+// BALENRISTA AI STOCK ASSISTANT
+// ========================================
+
+let aiConversationProduct = null;
+
+
+function normalizeAIText(text) {
+
+  return String(text || "")
+    .toLowerCase()
+    .trim();
+
+}
+
+
+function findAIProduct(question) {
+
+  const q =
+    normalizeAIText(question);
+
+  if (!q) {
+    return null;
+  }
+
+
+  // SKU
+  const skuMatch =
+    allProducts.find(product =>
+      q.includes(
+        normalizeAIText(
+          product.sku
+        )
+      )
+    );
+
+  if (skuMatch) {
+    return skuMatch;
+  }
+
+
+  // Item number
+  const itemMatch =
+    allProducts.find(product => {
+
+      const number =
+        String(product.item_no)
+          .padStart(2,"0");
+
+      return (
+        q.includes(
+          `item ${number}`
+        ) ||
+        q.includes(
+          `item${number}`
+        )
+      );
+
+    });
+
+  if (itemMatch) {
+    return itemMatch;
+  }
+
+
+  // Thai / English name
+  const nameMatch =
+    allProducts
+      .filter(product => {
+
+        const th =
+          normalizeAIText(
+            product.name_th
+          );
+
+        const en =
+          normalizeAIText(
+            product.name_en
+          );
+
+        return (
+          q.includes(th) ||
+          q.includes(en)
+        );
+
+      })
+      .sort(
+        (a,b) =>
+          Math.max(
+            a.name_th.length,
+            a.name_en.length
+          )
+          -
+          Math.max(
+            b.name_th.length,
+            b.name_en.length
+          )
+      )
+      .pop();
+
+
+  if (nameMatch) {
+    return nameMatch;
+  }
+
+
+  // Keywords
+  const keywordMap = [
+
+    ["ชาไทย","Thai Tea"],
+    ["thai tea","Thai Tea"],
+
+    ["ชาเขียว","Green Tea"],
+    ["green tea","Green Tea"],
+
+    ["มัจฉะ","Matcha"],
+    ["matcha","Matcha"],
+
+    ["โฮจิฉะ","Houjicha"],
+    ["houjicha","Houjicha"],
+
+    ["น้ำผึ้ง","Honey"],
+    ["honey","Honey"],
+
+    ["แก้ว","Cup"],
+    ["cup","Cup"],
+
+    ["ฝา","Lid"],
+    ["lid","Lid"],
+
+    ["หลอด","Straw"],
+    ["straw","Straw"],
+
+    ["ไซรัป","Syrup"],
+    ["syrup","Syrup"]
+
+  ];
+
+
+  for (const [
+    keyword,
+    category
+  ] of keywordMap) {
+
+    if (
+      q.includes(keyword)
+    ) {
+
+      const matches =
+        allProducts.filter(
+          product => {
+
+            const text =
+              normalizeAIText(
+                product.name_th +
+                " " +
+                product.name_en
+              );
+
+            return (
+              text.includes(
+                normalizeAIText(
+                  keyword
+                )
+              ) ||
+              text.includes(
+                normalizeAIText(
+                  category
+                )
+              )
+            );
+
+          }
+        );
+
+      if (matches.length === 1) {
+        return matches[0];
+      }
+
+    }
+
+  }
+
+
+  return null;
+
+}
+function getAIStock(product) {
+
+  if (!product) {
+    return null;
+  }
+
+  const stock =
+    Number(
+      stockMap[product.id] ??
+      stockMap[product.item_no] ??
+      0
+    );
+
+  const minStock =
+    Number(
+      product.min_stock ?? 5
+    );
+
+  return {
+    stock,
+    minStock,
+    status:
+      stock <= 0
+        ? "OUT"
+        : stock <= minStock
+          ? "LOW"
+          : "NORMAL"
+  };
+
+}
+function getAILowStock() {
+
+  return allProducts
+    .map(product => {
+
+      const info =
+        getAIStock(product);
+
+      return {
+        product,
+        ...info
+      };
+
+    })
+    .filter(item =>
+      item.stock <=
+      item.minStock
+    )
+    .sort(
+      (a,b) =>
+        a.stock - b.stock
+    );
+
+}
+async function getAIMovements() {
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("stock_movements")
+      .select("*")
+      .order(
+        "created_at",
+        {
+          ascending:false
+        }
+      )
+      .limit(100);
+
+  if (error) {
+    console.error(
+      "AI movement error:",
+      error
+    );
+
+    return [];
+  }
+
+  return data || [];
+
+}
+async function answerAIQuestion(
+  question
+) {
+
+  const q =
+    normalizeAIText(
+      question
+    );
+
+
+  if (!q) {
+
+    return `
+      ลองถามผมเรื่องสต็อกได้เลยครับ 👋
+    `;
+
+  }
+
+
+  // =====================================
+  // LOW STOCK
+  // =====================================
+
+  if (
+    q.includes("ใกล้หมด") ||
+    q.includes("เหลือน้อย") ||
+    q.includes("low stock") ||
+    q.includes("หมดแล้ว") ||
+    q.includes("หมด")
+  ) {
+
+    const items =
+      getAILowStock();
+
+    if (!items.length) {
+
+      return `
+        🟢 ตอนนี้ไม่มีสินค้าที่ต่ำกว่า
+        Minimum Stock ครับ
+      `;
+
+    }
+
+
+    const out =
+      items
+        .slice(0,10)
+        .map(item => {
+
+          const p =
+            item.product;
+
+          const icon =
+            item.stock <= 0
+              ? "🔴"
+              : "🟠";
+
+          return `
+            ${icon} ${p.name_th}
+            — ${item.stock} ${p.unit}
+          `;
+
+        })
+        .join("<br>");
+
+    return `
+      <strong>Stock Alert</strong><br><br>
+      ${out}
+    `;
+
+  }
+
+
+  // =====================================
+  // PRODUCT QUESTION
+  // =====================================
+
+  let product =
+    findAIProduct(q);
+
+
+  // Follow-up question
+  if (
+    !product &&
+    aiConversationProduct
+  ) {
+
+    product =
+      aiConversationProduct;
+
+  }
+
+
+  if (product) {
+
+    aiConversationProduct =
+      product;
+
+
+    const info =
+      getAIStock(product);
+
+
+    const stockText =
+      info.stock <= 0
+        ? "🔴 OUT OF STOCK"
+        : info.stock <= info.minStock
+          ? "🟠 LOW STOCK"
+          : "🟢 NORMAL";
+
+
+    if (
+      q.includes("เหลือ") ||
+      q.includes("stock") ||
+      q.includes("กี่") ||
+      q.includes("มีไหม") ||
+      q.includes("how much") ||
+      q.includes("how many")
+    ) {
+
+      return `
+        <strong>${product.name_th}</strong><br>
+        ${product.name_en}<br><br>
+
+        📦 Current Stock:
+        <strong>
+          ${info.stock}
+        </strong>
+        ${product.unit}
+
+        <br>
+
+        Minimum Stock:
+        ${info.minStock}
+
+        <br><br>
+
+        ${stockText}
+      `;
+
+    }
+
+  }
+
+
+  // =====================================
+  // TODAY MOVEMENTS
+  // =====================================
+
+  if (
+    q.includes("วันนี้") ||
+    q.includes("today")
+  ) {
+
+    const movements =
+      await getAIMovements();
+
+
+    const today =
+      new Date()
+        .toLocaleDateString(
+          "en-CA"
+        );
+
+
+    const todayRows =
+      movements.filter(row =>
+        String(
+          row.created_at
+        ).startsWith(today)
+      );
+
+
+    if (!todayRows.length) {
+
+      return `
+        วันนี้ยังไม่มี Stock Movement ครับ
+      `;
+
+    }
+
+
+    const totalIn =
+      todayRows
+        .filter(
+          row =>
+            String(
+              row.movement_type
+            ).toUpperCase()
+            === "IN"
+        )
+        .reduce(
+          (sum,row) =>
+            sum +
+            Number(row.quantity || 0),
+          0
+        );
+
+
+    const totalOut =
+      todayRows
+        .filter(
+          row =>
+            String(
+              row.movement_type
+            ).toUpperCase()
+            === "OUT"
+        )
+        .reduce(
+          (sum,row) =>
+            sum +
+            Number(row.quantity || 0),
+          0
+        );
+
+
+    return `
+      <strong>Today's Stock</strong><br><br>
+
+      🟢 Stock In:
+      <strong>${totalIn}</strong>
+
+      <br>
+
+      🔴 Stock Out:
+      <strong>${totalOut}</strong>
+
+      <br><br>
+
+      Total movements:
+      ${todayRows.length}
+      รายการ
+    `;
+
+  }
+
+
+  // =====================================
+  // LATEST
+  // =====================================
+
+  if (
+    q.includes("ล่าสุด") ||
+    q.includes("recent") ||
+    q.includes("latest")
+  ) {
+
+    const movements =
+      await getAIMovements();
+
+
+    if (!movements.length) {
+
+      return `
+        ยังไม่มี Stock Movement ครับ
+      `;
+
+    }
+
+
+    const rows =
+      movements
+        .slice(0,5)
+        .map(row => {
+
+          const type =
+            String(
+              row.movement_type
+            ).toUpperCase();
+
+          const icon =
+            type === "IN"
+              ? "🟢"
+              : "🔴";
+
+          return `
+            ${icon}
+            ${type}
+            ${row.quantity}
+          `;
+
+        })
+        .join("<br>");
+
+
+    return `
+      <strong>Latest Stock Movement</strong>
+      <br><br>
+      ${rows}
+    `;
+
+  }
+
+
+  return `
+    ผมยังไม่แน่ใจว่าคุณหมายถึงสินค้าอะไรครับ 😅
+    <br><br>
+    ลองถามแบบนี้ได้เลย:
+    <br>
+    • ชาไทยเหลือเท่าไหร่?
+    <br>
+    • อะไรใกล้หมด?
+    <br>
+    • วันนี้มีของอะไรออกบ้าง?
+    <br>
+    • รายการล่าสุดคืออะไร?
+  `;
+
+}
+
+// ========================================
+// AI EVENTS
+// ========================================
+
+const aiClose =
+  document.getElementById(
+    "aiClose"
+  );
+
+const aiInput =
+  document.getElementById(
+    "aiInput"
+  );
+
+const aiSend =
+  document.getElementById(
+    "aiSend"
+  );
+
+const aiMessages =
+  document.getElementById(
+    "aiMessages"
+  );
+
+
+function openAIAssistant() {
+
+  aiModal.classList.add(
+    "show"
+  );
+
+  setTimeout(() => {
+
+    aiInput.focus();
+
+  },100);
+
+}
+
+
+function closeAIAssistant() {
+
+  aiModal.classList.remove(
+    "show"
+  );
+
+}
+
+
+function addAIMessage(
+  html,
+  type
+) {
+
+  const message =
+    document.createElement(
+      "div"
+    );
+
+  message.className =
+    `ai-message ai-message-${type}`;
+
+  message.innerHTML =
+    html;
+
+  aiMessages.appendChild(
+    message
+  );
+
+  aiMessages.scrollTop =
+    aiMessages.scrollHeight;
+
+}
+
+
+async function sendAIQuestion() {
+
+  const question =
+    aiInput.value.trim();
+
+
+  if (!question) {
+    return;
+  }
+
+
+  addAIMessage(
+    question,
+    "user"
+  );
+
+
+  aiInput.value = "";
+
+
+  addAIMessage(
+    "กำลังตรวจสอบข้อมูล Stock... ⏳",
+    "bot"
+  );
+
+
+  const loading =
+    aiMessages.lastElementChild;
+
+
+  try {
+
+    const answer =
+      await answerAIQuestion(
+        question
+      );
+
+
+    loading.innerHTML =
+      answer;
+
+  } catch (error) {
+
+    console.error(
+      error
+    );
+
+    loading.innerHTML =
+      `
+        ขออภัยครับ เกิดข้อผิดพลาด
+        ในการอ่านข้อมูล Stock
+      `;
+
+  }
+
+}
+
+
+aiButton.addEventListener(
+  "click",
+  openAIAssistant
+);
+
+
+aiClose.addEventListener(
+  "click",
+  closeAIAssistant
+);
+
+
+aiSend.addEventListener(
+  "click",
+  sendAIQuestion
+);
+
+
+aiInput.addEventListener(
+  "keydown",
+  event => {
+
+    if (
+      event.key === "Enter"
+    ) {
+
+      sendAIQuestion();
+
+    }
+
+  }
+);
+
+
+aiModal.addEventListener(
+  "click",
+  event => {
+
+    if (
+      event.target === aiModal
+    ) {
+
+      closeAIAssistant();
+
+    }
+
+  }
+);
+
+
+document
+  .querySelectorAll(
+    "#aiSuggestions button"
+  )
+  .forEach(button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        aiInput.value =
+          button.dataset.question;
+
+        sendAIQuestion();
+
+      }
+    );
+
+  });
 
 // ========================================
 // START
