@@ -9586,7 +9586,7 @@ function findAIProduct(question) {
 // AI CURRENT STOCK READER
 // ========================================
 
-async function getAIStock(product) {
+function getAIStock(product) {
 
   if (!product) {
     return null;
@@ -9594,172 +9594,63 @@ async function getAIStock(product) {
 
 
   // --------------------------------------
-  // 1. TRY CURRENT STOCK FROM DATABASE
+  // READ FROM EXISTING STOCK MAP
   // --------------------------------------
 
-  try {
-
-    const {
-      data,
-      error
-    } =
-      await supabaseClient
-        .from("current_stock")
-        .select(
-          "id, item_no, current_stock, min_stock"
-        )
-        .eq(
-          "id",
-          product.id
-        )
-        .maybeSingle();
+  const stockData =
+    stockMap?.[product.id] ??
+    stockMap?.[product.item_no] ??
+    null;
 
 
-    if (!error && data) {
-
-      const stock =
-        Number(
-          data.current_stock
-        ) || 0;
-
-      const minStock =
-        Number(
-          data.min_stock
-        ) ||
-        Number(
-          product.min_stock
-        ) ||
-        5;
-
-
-      let status =
-        "NORMAL";
-
-
-      if (stock <= 0) {
-
-        status =
-          "OUT";
-
-      }
-      else if (
-        stock <= minStock
-      ) {
-
-        status =
-          "LOW";
-
-      }
-
-
-      return {
-
-        stock,
-        minStock,
-        status
-
-      };
-
-    }
-
-  }
-  catch (error) {
-
-    console.error(
-      "AI current stock read error:",
-      error
+  const stock =
+    Number(
+      stockData?.current_stock ?? 0
     );
 
-  }
 
-
-  // --------------------------------------
-  // 2. FALLBACK TO EXISTING STOCK MAP
-  // --------------------------------------
-
-  try {
-
-    const stockData =
-      stockMap?.[product.id] ??
-      null;
-
-
-    if (stockData) {
-
-      const stock =
-        Number(
-          stockData.current_stock
-        ) || 0;
-
-      const minStock =
-        Number(
-          stockData.min_stock
-        ) ||
-        Number(
-          product.min_stock
-        ) ||
-        5;
-
-
-      let status =
-        "NORMAL";
-
-
-      if (stock <= 0) {
-
-        status =
-          "OUT";
-
-      }
-      else if (
-        stock <= minStock
-      ) {
-
-        status =
-          "LOW";
-
-      }
-
-
-      return {
-
-        stock,
-        minStock,
-        status
-
-      };
-
-    }
-
-  }
-  catch (error) {
-
-    console.error(
-      "AI stock map error:",
-      error
+  const minStock =
+    Number(
+      stockData?.min_stock ??
+      product.min_stock ??
+      5
     );
 
+
+  let status =
+    "NORMAL";
+
+
+  if (stock <= 0) {
+
+    status =
+      "OUT";
+
+  }
+  else if (
+    stock <= minStock
+  ) {
+
+    status =
+      "LOW";
+
   }
 
-
-  // --------------------------------------
-  // 3. SAFE FALLBACK
-  // --------------------------------------
 
   return {
 
-    stock: 0,
-
-    minStock:
-      Number(
-        product.min_stock
-      ) || 5,
-
-    status: "OUT"
+    stock,
+    minStock,
+    status
 
   };
 
 }
+
+
+// ========================================
+// MOVEMENTS
+// ========================================
 
 // ========================================
 // MOVEMENTS
