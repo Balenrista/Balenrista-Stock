@@ -5511,6 +5511,1466 @@ async function refreshDashboard() {
 
 }
 
+/* =========================================================
+   BALENRISTA DASHBOARD ANALYTICS — ONE BLOCK EXTENSION
+   ========================================================= */
+(function installDashboardAnalytics() {
+  const style = document.createElement("style");
+  style.id = "balenrista-dashboard-analytics-style";
+  style.textContent = `
+    .br-analytics-section{margin-top:28px}
+    .br-analytics-head{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:12px
+    }
+
+    .br-analytics-title{
+      color:var(--soft-dove);
+      font-size:14px;
+      font-weight:700;
+      letter-spacing:.04em
+    }
+
+    .br-analytics-sub{
+      margin-top:4px;
+      color:var(--moon-rock);
+      font-size:9px
+    }
+
+    .br-range-switch{
+      display:flex;
+      gap:6px;
+      flex-shrink:0
+    }
+
+    .br-range-switch button{
+      height:32px;
+      padding:0 10px;
+      color:var(--moon-rock);
+      background:rgba(192,186,179,.06);
+      border:1px solid rgba(192,186,179,.12);
+      border-radius:10px;
+      font-size:8px;
+      cursor:pointer
+    }
+
+    .br-range-switch button.active{
+      color:var(--soft-dove);
+      background:rgba(57,18,20,.88);
+      border-color:rgba(192,186,179,.2)
+    }
+
+    .br-analytics-card,
+    .br-analytics-panel{
+      padding:16px;
+      color:var(--soft-dove);
+      background:rgba(82,66,61,.22);
+      border:1px solid rgba(192,186,179,.12);
+      border-radius:20px;
+      box-shadow:0 12px 30px rgba(0,0,0,.14)
+    }
+
+    .br-movement-totals{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:9px;
+      margin-bottom:16px
+    }
+
+    .br-movement-total{
+      padding:12px;
+      border-radius:15px;
+      background:rgba(22,15,12,.32);
+      border:1px solid rgba(192,186,179,.08)
+    }
+
+    .br-movement-total-label{
+      color:var(--moon-rock);
+      font-size:8px;
+      letter-spacing:.08em
+    }
+
+    .br-movement-total-value{
+      margin-top:5px;
+      font-size:20px;
+      font-weight:700
+    }
+
+    .br-movement-total.in .br-movement-total-value{
+      color:#9FA99D
+    }
+
+    .br-movement-total.out .br-movement-total-value{
+      color:#C77A7A
+    }
+
+    .br-chart-wrap{
+      overflow-x:auto;
+      padding-bottom:3px;
+      scrollbar-width:thin
+    }
+
+    .br-chart{
+      min-width:620px;
+      height:190px;
+      display:flex;
+      align-items:stretch;
+      gap:5px
+    }
+
+    .br-chart-column{
+      flex:1;
+      min-width:18px;
+      display:flex;
+      flex-direction:column;
+      justify-content:flex-end
+    }
+
+    .br-chart-bars{
+      height:155px;
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+      gap:2px
+    }
+
+    .br-chart-bar{
+      width:42%;
+      min-height:2px;
+      border-radius:5px 5px 2px 2px
+    }
+
+    .br-chart-bar.in{
+      background:#6F8E78
+    }
+
+    .br-chart-bar.out{
+      background:#A85D5D
+    }
+
+    .br-chart-label{
+      margin-top:7px;
+      text-align:center;
+      color:var(--moon-rock);
+      font-size:7px
+    }
+
+    .br-chart-legend{
+      display:flex;
+      gap:14px;
+      margin-bottom:8px;
+      color:var(--moon-rock);
+      font-size:8px
+    }
+
+    .br-legend-item{
+      display:flex;
+      align-items:center;
+      gap:5px
+    }
+
+    .br-legend-dot{
+      width:7px;
+      height:7px;
+      border-radius:50%
+    }
+
+    .br-legend-dot.in{
+      background:#6F8E78
+    }
+
+    .br-legend-dot.out{
+      background:#A85D5D
+    }
+
+    .br-analytics-grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+      margin-top:12px
+    }
+
+    .br-panel-title{
+      color:var(--soft-dove);
+      font-size:12px;
+      font-weight:700
+    }
+
+    .br-panel-sub{
+      margin-top:4px;
+      margin-bottom:12px;
+      color:var(--moon-rock);
+      font-size:8px
+    }
+
+    .br-rank-list{
+      display:flex;
+      flex-direction:column;
+      gap:7px
+    }
+
+    .br-rank-row{
+      display:grid;
+      grid-template-columns:26px 1fr auto;
+      gap:8px;
+      align-items:center;
+      padding:9px;
+      background:rgba(22,15,12,.28);
+      border:1px solid rgba(192,186,179,.07);
+      border-radius:13px
+    }
+
+    .br-rank-number{
+      color:var(--moon-rock);
+      font-size:9px;
+      text-align:center
+    }
+
+    .br-rank-name{
+      overflow:hidden;
+      color:var(--soft-dove);
+      font-size:9px;
+      white-space:nowrap;
+      text-overflow:ellipsis
+    }
+
+    .br-rank-meta{
+      margin-top:3px;
+      color:var(--moon-rock);
+      font-size:7px
+    }
+
+    .br-rank-value{
+      color:var(--soft-dove);
+      font-size:11px;
+      font-weight:700;
+      text-align:right
+    }
+
+    .br-rank-value.in{
+      color:#9FA99D
+    }
+
+    .br-rank-value.out,
+    .br-rank-value.low{
+      color:#C77A7A
+    }
+
+    .br-rank-progress{
+      height:4px;
+      margin-top:5px;
+      overflow:hidden;
+      background:rgba(192,186,179,.08);
+      border-radius:99px
+    }
+
+    .br-rank-progress span{
+      display:block;
+      height:100%;
+      background:rgba(192,186,179,.38);
+      border-radius:99px
+    }
+
+    .br-analytics-empty{
+      padding:18px 8px;
+      color:var(--moon-rock);
+      font-size:9px;
+      text-align:center
+    }
+
+    .br-activity-summary{
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr;
+      gap:7px;
+      margin-bottom:10px
+    }
+
+    .br-activity-stat{
+      padding:10px 7px;
+      background:rgba(22,15,12,.28);
+      border-radius:13px;
+      text-align:center
+    }
+
+    .br-activity-stat-label{
+      color:var(--moon-rock);
+      font-size:7px
+    }
+
+    .br-activity-stat-value{
+      margin-top:4px;
+      color:var(--soft-dove);
+      font-size:14px;
+      font-weight:700
+    }
+
+    @media(min-width:700px){
+      .br-analytics-grid{
+        grid-template-columns:1fr 1fr
+      }
+    }
+  `;
+
+  document.head.appendChild(style);
+
+  let analyticsRange = "7";
+  let realtimeChannel = null;
+
+  function ensureUI() {
+
+    if (
+      !dashboardPage ||
+      document.getElementById("brDashboardAnalytics")
+    ) {
+      return;
+    }
+
+    const section = document.createElement("section");
+
+    section.id = "brDashboardAnalytics";
+    section.className = "br-analytics-section";
+
+    section.innerHTML = `
+      <div class="br-analytics-head">
+
+        <div>
+          <div class="br-analytics-title">
+            Stock Movement Analytics
+          </div>
+
+          <div class="br-analytics-sub">
+            IN / OUT movement overview
+          </div>
+        </div>
+
+        <div class="br-range-switch">
+
+          <button data-analytics-range="7">
+            7D
+          </button>
+
+          <button data-analytics-range="30">
+            30D
+          </button>
+
+          <button data-analytics-range="month">
+            MONTH
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div class="br-analytics-card">
+
+        <div class="br-movement-totals">
+
+          <div class="br-movement-total in">
+
+            <div class="br-movement-total-label">
+              STOCK IN
+            </div>
+
+            <div
+              class="br-movement-total-value"
+              id="brAnalyticsIn"
+            >
+              0
+            </div>
+
+          </div>
+
+
+          <div class="br-movement-total out">
+
+            <div class="br-movement-total-label">
+              STOCK OUT
+            </div>
+
+            <div
+              class="br-movement-total-value"
+              id="brAnalyticsOut"
+            >
+              0
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="br-chart-legend">
+
+          <div class="br-legend-item">
+            <span class="br-legend-dot in"></span>
+            IN
+          </div>
+
+          <div class="br-legend-item">
+            <span class="br-legend-dot out"></span>
+            OUT
+          </div>
+
+        </div>
+
+
+        <div class="br-chart-wrap">
+
+          <div
+            class="br-chart"
+            id="brMovementChart"
+          ></div>
+
+        </div>
+
+      </div>
+
+
+      <div class="br-analytics-grid">
+
+        <div class="br-analytics-panel">
+
+          <div class="br-panel-title">
+            Fast Moving Items
+          </div>
+
+          <div class="br-panel-sub">
+            Products with the most movement in the selected period
+          </div>
+
+          <div
+            class="br-rank-list"
+            id="brFastMovingList"
+          ></div>
+
+        </div>
+
+
+        <div class="br-analytics-panel">
+
+          <div class="br-panel-title">
+            Low Stock Overview
+          </div>
+
+          <div class="br-panel-sub">
+            Items at or below minimum stock
+          </div>
+
+          <div
+            class="br-rank-list"
+            id="brLowStockList"
+          ></div>
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="br-analytics-panel"
+        style="margin-top:12px"
+      >
+
+        <div class="br-panel-title">
+          Latest Activity
+        </div>
+
+        <div class="br-panel-sub">
+          Activity in the selected period
+        </div>
+
+        <div id="brAnalyticsLatest"></div>
+
+      </div>
+    `;
+
+    dashboardPage.appendChild(section);
+
+
+    section
+      .querySelectorAll("[data-analytics-range]")
+      .forEach(button => {
+
+        button.addEventListener(
+          "click",
+          async () => {
+
+            analyticsRange =
+              button.dataset.analyticsRange;
+
+            updateRangeButtons();
+
+            await renderAnalytics();
+
+          }
+        );
+
+      });
+
+
+    updateRangeButtons();
+
+  }
+
+
+  function updateRangeButtons() {
+
+    document
+      .querySelectorAll("[data-analytics-range]")
+      .forEach(button => {
+
+        button.classList.toggle(
+          "active",
+          button.dataset.analyticsRange ===
+          analyticsRange
+        );
+
+      });
+
+  }
+
+
+  function getRange() {
+
+    if (analyticsRange === "month") {
+
+      const now = new Date();
+
+      const parts =
+        new Intl.DateTimeFormat(
+          "en-US",
+          {
+            timeZone:"Asia/Bangkok",
+            year:"numeric",
+            month:"numeric"
+          }
+        ).formatToParts(now);
+
+      const year =
+        Number(
+          parts.find(
+            x => x.type === "year"
+          ).value
+        );
+
+      const month =
+        Number(
+          parts.find(
+            x => x.type === "month"
+          ).value
+        ) - 1;
+
+      return getBangkokMonthRange(
+        year,
+        month
+      );
+
+    }
+
+
+    const days =
+      Number(analyticsRange);
+
+    const end =
+      new Date();
+
+    const start =
+      new Date(end);
+
+    start.setDate(
+      start.getDate() -
+      (days - 1)
+    );
+
+    return {
+      start:start.toISOString(),
+      end:end.toISOString()
+    };
+
+  }
+
+
+  async function getRows() {
+
+    const range =
+      getRange();
+
+    const result =
+      await supabaseClient
+        .from("stock_movements")
+        .select(`
+          id,
+          product_id,
+          movement_type,
+          quantity,
+          note,
+          created_at,
+          products (
+            item_no,
+            name_en,
+            name_th,
+            unit
+          )
+        `)
+        .gte(
+          "created_at",
+          range.start
+        )
+        .lt(
+          "created_at",
+          range.end
+        )
+        .order(
+          "created_at",
+          {
+            ascending:true
+          }
+        );
+
+
+    if (result.error) {
+
+      console.error(
+        "Dashboard analytics error:",
+        result.error
+      );
+
+      return [];
+
+    }
+
+
+    return result.data || [];
+
+  }
+
+
+  function getDates() {
+
+    const dates = [];
+
+
+    if (analyticsRange === "month") {
+
+      const now =
+        new Date();
+
+      const parts =
+        new Intl.DateTimeFormat(
+          "en-US",
+          {
+            timeZone:"Asia/Bangkok",
+            year:"numeric",
+            month:"numeric"
+          }
+        ).formatToParts(now);
+
+      const year =
+        Number(
+          parts.find(
+            x => x.type === "year"
+          ).value
+        );
+
+      const month =
+        Number(
+          parts.find(
+            x => x.type === "month"
+          ).value
+        ) - 1;
+
+      const days =
+        new Date(
+          year,
+          month + 1,
+          0
+        ).getDate();
+
+
+      for (
+        let d = 1;
+        d <= days;
+        d++
+      ) {
+
+        dates.push(
+          `${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`
+        );
+
+      }
+
+
+      return dates;
+
+    }
+
+
+    const count =
+      Number(analyticsRange);
+
+
+    for (
+      let i = count - 1;
+      i >= 0;
+      i--
+    ) {
+
+      const d =
+        new Date();
+
+      d.setDate(
+        d.getDate() - i
+      );
+
+      dates.push(
+        getBangkokDateKey(d)
+      );
+
+    }
+
+
+    return dates;
+
+  }
+
+
+  async function renderAnalytics() {
+
+    ensureUI();
+
+
+    const chart =
+      document.getElementById(
+        "brMovementChart"
+      );
+
+    const inEl =
+      document.getElementById(
+        "brAnalyticsIn"
+      );
+
+    const outEl =
+      document.getElementById(
+        "brAnalyticsOut"
+      );
+
+
+    if (
+      !chart ||
+      !inEl ||
+      !outEl
+    ) {
+      return;
+    }
+
+
+    chart.innerHTML = `
+      <div class="br-analytics-empty">
+        กำลังโหลด...
+      </div>
+    `;
+
+
+    const rows =
+      await getRows();
+
+
+    const grouped = {};
+
+
+    rows.forEach(row => {
+
+      const key =
+        getBangkokDateKey(
+          row.created_at
+        );
+
+
+      if (!grouped[key]) {
+
+        grouped[key] = {
+          IN:0,
+          OUT:0
+        };
+
+      }
+
+
+      const q =
+        Number(row.quantity) || 0;
+
+
+      if (
+        row.movement_type === "IN"
+      ) {
+
+        grouped[key].IN += q;
+
+      }
+
+
+      if (
+        row.movement_type === "OUT"
+      ) {
+
+        grouped[key].OUT += q;
+
+      }
+
+    });
+
+
+    const dates =
+      getDates();
+
+
+    const values =
+      dates.map(
+        d =>
+          grouped[d] || {
+            IN:0,
+            OUT:0
+          }
+      );
+
+
+    const max =
+      Math.max(
+        1,
+        ...values.map(
+          v =>
+            Math.max(
+              v.IN,
+              v.OUT
+            )
+        )
+      );
+
+
+    const totalIn =
+      values.reduce(
+        (s,v) => s + v.IN,
+        0
+      );
+
+
+    const totalOut =
+      values.reduce(
+        (s,v) => s + v.OUT,
+        0
+      );
+
+
+    inEl.textContent =
+      formatNumber(
+        totalIn
+      );
+
+    outEl.textContent =
+      formatNumber(
+        totalOut
+      );
+
+
+    chart.innerHTML =
+      dates.map(
+        (date,i) => {
+
+          const v =
+            values[i];
+
+
+          const ih =
+            v.IN
+              ? Math.max(
+                  3,
+                  (v.IN / max) * 100
+                )
+              : 0;
+
+
+          const oh =
+            v.OUT
+              ? Math.max(
+                  3,
+                  (v.OUT / max) * 100
+                )
+              : 0;
+
+
+          const label =
+            analyticsRange === "month"
+              ? date.slice(8,10)
+              : date.slice(5,10);
+
+
+          return `
+            <div
+              class="br-chart-column"
+              title="${date}"
+            >
+
+              <div class="br-chart-bars">
+
+                <div
+                  class="br-chart-bar in"
+                  style="height:${ih}%"
+                ></div>
+
+                <div
+                  class="br-chart-bar out"
+                  style="height:${oh}%"
+                ></div>
+
+              </div>
+
+              <div class="br-chart-label">
+                ${label}
+              </div>
+
+            </div>
+          `;
+
+        }
+      ).join("");
+
+
+    renderFastMoving(rows);
+
+    renderLowStock();
+
+    renderLatest(rows);
+
+  }
+
+
+  function renderFastMoving(rows) {
+
+    const el =
+      document.getElementById(
+        "brFastMovingList"
+      );
+
+
+    if (!el) {
+      return;
+    }
+
+
+    const map = {};
+
+
+    rows.forEach(row => {
+
+      if (!map[row.product_id]) {
+
+        map[row.product_id] = {
+          product:row.products,
+          total:0,
+          in:0,
+          out:0
+        };
+
+      }
+
+
+      const q =
+        Number(row.quantity) || 0;
+
+
+      map[row.product_id].total += q;
+
+
+      if (
+        row.movement_type === "IN"
+      ) {
+
+        map[row.product_id].in += q;
+
+      }
+
+
+      if (
+        row.movement_type === "OUT"
+      ) {
+
+        map[row.product_id].out += q;
+
+      }
+
+    });
+
+
+    const ranked =
+      Object.values(map)
+        .sort(
+          (a,b) =>
+            b.total - a.total
+        )
+        .slice(0,8);
+
+
+    if (!ranked.length) {
+
+      el.innerHTML = `
+        <div class="br-analytics-empty">
+          ยังไม่มี Stock Movement ในช่วงนี้
+        </div>
+      `;
+
+      return;
+
+    }
+
+
+    const max =
+      Math.max(
+        1,
+        ranked[0].total
+      );
+
+
+    el.innerHTML =
+      ranked.map(
+        (x,i) => `
+
+          <div class="br-rank-row">
+
+            <div class="br-rank-number">
+              ${i+1}
+            </div>
+
+            <div>
+
+              <div class="br-rank-name">
+                ${escapeHtml(
+                  x.product?.name_en ||
+                  "Unknown Product"
+                )}
+              </div>
+
+              <div class="br-rank-meta">
+                IN ${formatNumber(x.in)}
+                ·
+                OUT ${formatNumber(x.out)}
+              </div>
+
+              <div class="br-rank-progress">
+
+                <span
+                  style="width:${(x.total/max)*100}%"
+                ></span>
+
+              </div>
+
+            </div>
+
+            <div class="br-rank-value">
+              ${formatNumber(x.total)}
+            </div>
+
+          </div>
+
+        `
+      ).join("");
+
+  }
+
+
+  function renderLowStock() {
+
+    const el =
+      document.getElementById(
+        "brLowStockList"
+      );
+
+
+    if (!el) {
+      return;
+    }
+
+
+    const low =
+      allProducts
+        .map(product => {
+
+          const stock =
+            stockMap[product.id];
+
+
+          const current =
+            stock
+              ? Number(stock.current_stock) || 0
+              : 0;
+
+
+          const min =
+            stock
+              ? Number(stock.min_stock) || 5
+              : Number(product.min_stock) || 5;
+
+
+          return {
+            product,
+            current,
+            min
+          };
+
+        })
+        .filter(
+          x => x.current <= x.min
+        )
+        .sort(
+          (a,b) =>
+            a.current - b.current ||
+            a.product.item_no -
+            b.product.item_no
+        )
+        .slice(0,8);
+
+
+    if (!low.length) {
+
+      el.innerHTML = `
+        <div class="br-analytics-empty">
+          ไม่มีรายการ Low Stock 🎉
+        </div>
+      `;
+
+      return;
+
+    }
+
+
+    el.innerHTML =
+      low.map(
+        (x,i) => {
+
+          const pct =
+            x.min > 0
+              ? Math.min(
+                  100,
+                  (x.current / x.min) * 100
+                )
+              : 0;
+
+
+          return `
+
+            <div class="br-rank-row">
+
+              <div class="br-rank-number">
+                ${i+1}
+              </div>
+
+              <div>
+
+                <div class="br-rank-name">
+                  ${escapeHtml(
+                    x.product.name_en || ""
+                  )}
+                </div>
+
+                <div class="br-rank-meta">
+                  MIN ${formatNumber(x.min)}
+                  ${escapeHtml(
+                    x.product.unit || ""
+                  )}
+                </div>
+
+                <div class="br-rank-progress">
+
+                  <span
+                    style="width:${pct}%"
+                  ></span>
+
+                </div>
+
+              </div>
+
+              <div class="br-rank-value low">
+                ${formatNumber(x.current)}
+              </div>
+
+            </div>
+
+          `;
+
+        }
+      ).join("");
+
+  }
+
+
+  function renderLatest(rows) {
+
+    const el =
+      document.getElementById(
+        "brAnalyticsLatest"
+      );
+
+
+    if (!el) {
+      return;
+    }
+
+
+    const latest =
+      [...rows]
+        .sort(
+          (a,b) =>
+            new Date(b.created_at) -
+            new Date(a.created_at)
+        )
+        .slice(0,5);
+
+
+    const totalIn =
+      rows
+        .filter(
+          r => r.movement_type === "IN"
+        )
+        .reduce(
+          (s,r) =>
+            s + (Number(r.quantity) || 0),
+          0
+        );
+
+
+    const totalOut =
+      rows
+        .filter(
+          r => r.movement_type === "OUT"
+        )
+        .reduce(
+          (s,r) =>
+            s + (Number(r.quantity) || 0),
+          0
+        );
+
+
+    if (!latest.length) {
+
+      el.innerHTML = `
+        <div class="br-analytics-empty">
+          ยังไม่มีรายการ
+        </div>
+      `;
+
+      return;
+
+    }
+
+
+    el.innerHTML = `
+
+      <div class="br-activity-summary">
+
+        <div class="br-activity-stat">
+
+          <div class="br-activity-stat-label">
+            MOVEMENTS
+          </div>
+
+          <div class="br-activity-stat-value">
+            ${formatNumber(rows.length)}
+          </div>
+
+        </div>
+
+
+        <div class="br-activity-stat">
+
+          <div class="br-activity-stat-label">
+            IN
+          </div>
+
+          <div
+            class="br-activity-stat-value"
+            style="color:#9FA99D"
+          >
+            ${formatNumber(totalIn)}
+          </div>
+
+        </div>
+
+
+        <div class="br-activity-stat">
+
+          <div class="br-activity-stat-label">
+            OUT
+          </div>
+
+          <div
+            class="br-activity-stat-value"
+            style="color:#C77A7A"
+          >
+            ${formatNumber(totalOut)}
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="br-rank-list">
+
+        ${
+          latest.map(row => {
+
+            const isIn =
+              row.movement_type === "IN";
+
+
+            return `
+
+              <div class="br-rank-row">
+
+                <div
+                  class="br-rank-number"
+                  style="
+                    color:${isIn
+                      ? "#9FA99D"
+                      : "#C77A7A"}
+                  "
+                >
+                  ${isIn ? "IN" : "OUT"}
+                </div>
+
+
+                <div>
+
+                  <div class="br-rank-name">
+                    ${escapeHtml(
+                      row.products?.name_en ||
+                      "Unknown Product"
+                    )}
+                  </div>
+
+
+                  <div class="br-rank-meta">
+
+                    ITEM
+                    ${String(
+                      row.products?.item_no ?? ""
+                    ).padStart(2,"0")}
+
+                    ·
+
+                    ${formatBangkokTime(
+                      row.created_at
+                    )}
+
+                    ${
+                      row.note
+                        ? ` · ${escapeHtml(row.note)}`
+                        : ""
+                    }
+
+                  </div>
+
+                </div>
+
+
+                <div
+                  class="br-rank-value ${
+                    isIn ? "in" : "out"
+                  }"
+                >
+                  ${
+                    isIn
+                      ? "+"
+                      : "−"
+                  }${formatNumber(
+                    row.quantity
+                  )}
+                </div>
+
+              </div>
+
+            `;
+
+          }).join("")
+        }
+
+      </div>
+
+    `;
+
+  }
+
+
+  const originalLoadDashboard =
+    loadDashboard;
+
+
+  loadDashboard =
+    async function() {
+
+      await originalLoadDashboard();
+
+
+      if (
+        dashboardPage.style.display ===
+        "none"
+      ) {
+        return;
+      }
+
+
+      ensureUI();
+
+      await renderAnalytics();
+
+    };
+
+
+  function setupRealtime() {
+
+    if (realtimeChannel) {
+      return;
+    }
+
+
+    realtimeChannel =
+  supabaseClient
+    .channel(
+      "balenrista-dashboard-realtime"
+    )
+    .on(
+      "postgres_changes",
+      {
+        event:"*",
+        schema:"public",
+        table:"stock_movements"
+      },
+      async () => {
+
+        await refreshStock();
+
+        if (
+          dashboardPage.style.display !==
+          "none"
+        ) {
+
+          await loadCalendarMovements();
+
+        }
+
+      }
+    )
+    .subscribe();
+
+  }
+
+
+  setupRealtime();
+
+})();
 
 // ========================================
 // START
