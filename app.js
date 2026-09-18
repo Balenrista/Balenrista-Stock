@@ -5473,21 +5473,1620 @@ navDashboard.onclick =
 
 
 // ========================================
-// CATALOG
+// CATALOG PAGE + PRODUCT DETAIL ENHANCEMENT
 // ========================================
 
-navCatalog.addEventListener(
-  "click",
-  () => {
+const catalogPage =
+  document.createElement("section");
 
-    showHomePage();
+catalogPage.id =
+  "catalogPage";
 
-    alert(
-      "Catalog จะเปิดใช้งานในขั้นถัดไป"
+catalogPage.style.display =
+  "none";
+
+const appRootForCatalog =
+  document.querySelector(".app");
+
+if (appRootForCatalog) {
+  appRootForCatalog.appendChild(catalogPage);
+}
+
+const catalogStyle =
+  document.createElement("style");
+
+catalogStyle.textContent = `
+
+.catalog-page-wrap {
+  padding-bottom: 110px;
+}
+
+.catalog-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 14px 0 18px;
+}
+
+.catalog-search {
+  width: 100%;
+  height: 50px;
+  padding: 0 16px;
+  color: var(--soft-dove);
+  background: rgba(82,66,61,.28);
+  border: 1px solid rgba(192,186,179,.13);
+  border-radius: 17px;
+  outline: none;
+  font: inherit;
+  font-size: 11px;
+}
+
+.catalog-search::placeholder {
+  color: var(--moon-rock);
+}
+
+.catalog-search:focus {
+  border-color: rgba(192,186,179,.30);
+}
+
+.catalog-filter-row {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  padding: 2px 1px 5px;
+  scrollbar-width: none;
+}
+
+.catalog-filter-row::-webkit-scrollbar {
+  display: none;
+}
+
+.catalog-filter-chip {
+  flex: 0 0 auto;
+  height: 34px;
+  padding: 0 13px;
+  color: var(--moon-rock);
+  background: rgba(82,66,61,.18);
+  border: 1px solid rgba(192,186,179,.11);
+  border-radius: 999px;
+  font-size: 8px;
+  letter-spacing: .04em;
+}
+
+.catalog-filter-chip.active {
+  color: var(--soft-dove);
+  background: rgba(57,18,20,.72);
+  border-color: rgba(192,186,179,.20);
+}
+
+.catalog-sort-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 7px;
+}
+
+.catalog-sort-button {
+  height: 38px;
+  color: var(--moon-rock);
+  background: rgba(82,66,61,.18);
+  border: 1px solid rgba(192,186,179,.10);
+  border-radius: 12px;
+  font-size: 8px;
+}
+
+.catalog-sort-button.active {
+  color: var(--soft-dove);
+  background: rgba(82,66,61,.46);
+  border-color: rgba(192,186,179,.18);
+}
+
+.catalog-count {
+  color: var(--moon-rock);
+  font-size: 9px;
+  letter-spacing: .06em;
+  margin: 3px 0 12px;
+}
+
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 12px;
+}
+
+.catalog-card {
+  min-width: 0;
+  overflow: hidden;
+  padding: 0;
+  color: var(--soft-dove);
+  background: rgba(82,66,61,.20);
+  border: 1px solid rgba(192,186,179,.12);
+  border-radius: 21px;
+  text-align: left;
+  box-shadow: 0 14px 34px rgba(0,0,0,.15);
+  transition: transform .18s ease,border-color .18s ease;
+}
+
+.catalog-card:active {
+  transform: scale(.985);
+}
+
+.catalog-card-image {
+  position: relative;
+  aspect-ratio: 1 / 1.08;
+  overflow: hidden;
+  background: rgba(22,15,12,.52);
+}
+
+.catalog-card-image img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.catalog-card-number {
+  position: absolute;
+  top: 9px;
+  left: 9px;
+  min-width: 31px;
+  height: 31px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 7px;
+  color: var(--soft-dove);
+  background: rgba(22,15,12,.78);
+  border: 1px solid rgba(192,186,179,.13);
+  border-radius: 10px;
+  font-size: 9px;
+}
+
+.catalog-card-stock {
+  position: absolute;
+  right: 9px;
+  bottom: 9px;
+  padding: 6px 8px;
+  color: var(--soft-dove);
+  background: rgba(22,15,12,.82);
+  border: 1px solid rgba(192,186,179,.12);
+  border-radius: 999px;
+  font-size: 8px;
+}
+
+.catalog-card-stock.low {
+  color: #E0A0A0;
+}
+
+.catalog-card-body {
+  padding: 12px;
+}
+
+.catalog-card-en {
+  min-height: 28px;
+  color: var(--soft-dove);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.catalog-card-th {
+  min-height: 21px;
+  margin-top: 2px;
+  color: var(--moon-rock);
+  font-family: "Noto Sans Thai",sans-serif;
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+.catalog-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 9px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(192,186,179,.08);
+  color: var(--moon-rock);
+  font-size: 7px;
+  letter-spacing: .04em;
+}
+
+.catalog-empty {
+  grid-column: 1 / -1;
+  padding: 45px 15px;
+  color: var(--moon-rock);
+  background: rgba(82,66,61,.15);
+  border: 1px solid rgba(192,186,179,.09);
+  border-radius: 20px;
+  text-align: center;
+  font-size: 10px;
+}
+
+.product-detail-meta {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 8px;
+  margin: 0 0 16px;
+}
+
+.product-detail-meta-item {
+  min-width: 0;
+  padding: 12px;
+  background: rgba(82,66,61,.22);
+  border: 1px solid rgba(192,186,179,.09);
+  border-radius: 15px;
+}
+
+.product-detail-meta-label {
+  color: var(--moon-rock);
+  font-size: 7px;
+  letter-spacing: .10em;
+  margin-bottom: 5px;
+}
+
+.product-detail-meta-value {
+  overflow: hidden;
+  color: var(--soft-dove);
+  font-size: 9px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.product-detail-history {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(192,186,179,.10);
+}
+
+.product-detail-history-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.product-detail-history-title {
+  color: var(--soft-dove);
+  font-size: 12px;
+}
+
+.product-detail-history-count {
+  color: var(--moon-rock);
+  font-size: 8px;
+}
+
+.product-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.product-history-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 11px;
+  background: rgba(22,15,12,.30);
+  border: 1px solid rgba(192,186,179,.08);
+  border-radius: 13px;
+}
+
+.product-history-main {
+  min-width: 0;
+}
+
+.product-history-type {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.product-history-type.in {
+  color: #9FA99D;
+}
+
+.product-history-type.out {
+  color: #C77A7A;
+}
+
+.product-history-note {
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--moon-rock);
+  font-size: 7px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.product-history-right {
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.product-history-qty {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.product-history-qty.in {
+  color: #9FA99D;
+}
+
+.product-history-qty.out {
+  color: #C77A7A;
+}
+
+.product-history-time {
+  margin-top: 2px;
+  color: var(--moon-rock);
+  font-size: 7px;
+}
+
+@media (min-width:700px) {
+  .catalog-grid {
+    grid-template-columns: repeat(3,minmax(0,1fr));
+  }
+}
+
+`;
+
+document.head.appendChild(
+  catalogStyle
+);
+
+
+// ========================================
+// PRODUCT DETAIL META
+// ========================================
+
+const productDetailMeta =
+  document.createElement("div");
+
+productDetailMeta.className =
+  "product-detail-meta";
+
+productDetailMeta.innerHTML = `
+  <div class="product-detail-meta-item">
+    <div class="product-detail-meta-label">CATEGORY</div>
+    <div class="product-detail-meta-value" id="detailCategory">—</div>
+  </div>
+
+  <div class="product-detail-meta-item">
+    <div class="product-detail-meta-label">UNIT</div>
+    <div class="product-detail-meta-value" id="detailUnit">—</div>
+  </div>
+
+  <div class="product-detail-meta-item">
+    <div class="product-detail-meta-label">SIZE</div>
+    <div class="product-detail-meta-value" id="detailSize">—</div>
+  </div>
+
+  <div class="product-detail-meta-item">
+    <div class="product-detail-meta-label">PACK</div>
+    <div class="product-detail-meta-value" id="detailPack">—</div>
+  </div>
+`;
+
+
+// ========================================
+// PRODUCT DETAIL HISTORY
+// ========================================
+
+const productDetailHistory =
+  document.createElement("div");
+
+productDetailHistory.className =
+  "product-detail-history";
+
+productDetailHistory.innerHTML = `
+  <div class="product-detail-history-head">
+
+    <div class="product-detail-history-title">
+      Recent Stock Movements
+    </div>
+
+    <div
+      class="product-detail-history-count"
+      id="productHistoryCount"
+    >
+      0
+    </div>
+
+  </div>
+
+  <div
+    class="product-history-list"
+    id="productHistoryList"
+  >
+    <div class="calendar-empty">
+      Loading...
+    </div>
+  </div>
+`;
+
+
+// ========================================
+// INSERT DETAIL SECTIONS
+// ========================================
+
+const stockModal =
+  document.getElementById("stockModal");
+
+const stockPanel =
+  stockModal?.querySelector(
+    ".stock-panel"
+  );
+
+const stockActions =
+  stockModal?.querySelector(
+    ".stock-actions"
+  );
+
+if (stockPanel) {
+
+  stockPanel.before(
+    productDetailMeta
+  );
+
+}
+
+if (stockActions) {
+
+  stockActions.after(
+    productDetailHistory
+  );
+
+}
+
+
+const detailCategory =
+  document.getElementById(
+    "detailCategory"
+  );
+
+const detailUnit =
+  document.getElementById(
+    "detailUnit"
+  );
+
+const detailSize =
+  document.getElementById(
+    "detailSize"
+  );
+
+const detailPack =
+  document.getElementById(
+    "detailPack"
+  );
+
+const productHistoryCount =
+  document.getElementById(
+    "productHistoryCount"
+  );
+
+const productHistoryList =
+  document.getElementById(
+    "productHistoryList"
+  );
+
+
+// ========================================
+// CATALOG STATE
+// ========================================
+
+function catalogCategories() {
+
+  return [
+    ...new Set(
+      allProducts
+        .map(product =>
+          product.category
+        )
+        .filter(Boolean)
+        .map(category =>
+          category.trim()
+        )
+    )
+  ];
+
+}
+
+let catalogKeyword = "";
+
+let catalogCategory =
+  "all";
+
+let catalogSort =
+  "item";
+
+
+// ========================================
+// CATALOG FILTER
+// ========================================
+
+function getCatalogFilteredProducts() {
+
+  let products =
+    [...allProducts];
+
+
+  if (
+    catalogCategory !==
+    "all"
+  ) {
+
+    products =
+      products.filter(
+        product =>
+          product.category &&
+          product.category.trim() ===
+          catalogCategory
+      );
+
+  }
+
+
+  if (catalogKeyword) {
+
+    products =
+      products.filter(
+        product => {
+
+          const text = [
+
+            product.item_no,
+            product.sku,
+            product.name_th,
+            product.name_en,
+            product.category,
+            product.unit,
+            product.size,
+            product.pack_detail
+
+          ]
+
+            .filter(
+              value =>
+                value !== null &&
+                value !== undefined
+            )
+
+            .join(" ")
+
+            .toLowerCase();
+
+
+          return text.includes(
+            catalogKeyword
+          );
+
+        }
+      );
+
+  }
+
+
+  if (
+    catalogSort ===
+    "name"
+  ) {
+
+    products.sort(
+      (a,b) =>
+        String(
+          a.name_en || ""
+        ).localeCompare(
+          String(
+            b.name_en || ""
+          )
+        )
     );
 
   }
-);
+
+
+  if (
+    catalogSort ===
+    "stock"
+  ) {
+
+    products.sort(
+      (a,b) => {
+
+        const sa =
+          Number(
+            stockMap[
+              a.id
+            ]?.current_stock
+          ) || 0;
+
+        const sb =
+          Number(
+            stockMap[
+              b.id
+            ]?.current_stock
+          ) || 0;
+
+        return (
+          sa - sb ||
+          Number(
+            a.item_no
+          ) -
+          Number(
+            b.item_no
+          )
+        );
+
+      }
+    );
+
+  }
+
+
+  if (
+    catalogSort ===
+    "item"
+  ) {
+
+    products.sort(
+      (a,b) =>
+        Number(
+          a.item_no
+        ) -
+        Number(
+          b.item_no
+        )
+    );
+
+  }
+
+
+  return products;
+
+}
+
+
+// ========================================
+// RENDER CATALOG
+// ========================================
+
+function renderCatalog() {
+
+  const grid =
+    document.getElementById(
+      "catalogGrid"
+    );
+
+  const count =
+    document.getElementById(
+      "catalogCount"
+    );
+
+
+  if (!grid) {
+
+    return;
+
+  }
+
+
+  const products =
+    getCatalogFilteredProducts();
+
+
+  count.textContent =
+    `${products.length} items`;
+
+
+  if (!products.length) {
+
+    grid.innerHTML = `
+
+      <div class="catalog-empty">
+        ไม่พบสินค้าที่ค้นหา
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  grid.innerHTML =
+    products
+      .map(
+        product => {
+
+          const stock =
+            stockMap[
+              product.id
+            ];
+
+          const currentStock =
+            stock
+              ? Number(
+                  stock.current_stock
+                ) || 0
+              : 0;
+
+          const minStock =
+            stock
+              ? Number(
+                  stock.min_stock
+                )
+              : Number(
+                  product.min_stock ||
+                  5
+                );
+
+          const isLow =
+            currentStock <=
+            minStock;
+
+          const number =
+            String(
+              product.item_no
+            ).padStart(
+              2,
+              "0"
+            );
+
+
+          return `
+
+            <button
+              class="catalog-card"
+              data-catalog-product-id="${escapeHtml(
+                product.id
+              )}"
+            >
+
+              <div
+                class="catalog-card-image"
+              >
+
+                <img
+                  src="${escapeHtml(
+                    product.image_url ||
+                    ""
+                  )}"
+                  alt="${escapeHtml(
+                    product.name_en ||
+                    ""
+                  )}"
+                  loading="lazy"
+                >
+
+                <div
+                  class="catalog-card-number"
+                >
+                  ${number}
+                </div>
+
+                <div
+                  class="
+                    catalog-card-stock
+                    ${isLow ? "low" : ""}
+                  "
+                >
+
+                  ${
+                    isLow
+                      ? "LOW"
+                      : `${formatNumber(
+                          currentStock
+                        )} ${escapeHtml(
+                          product.unit ||
+                          "Stock"
+                        )}`
+                  }
+
+                </div>
+
+              </div>
+
+
+              <div
+                class="catalog-card-body"
+              >
+
+                <div
+                  class="catalog-card-en"
+                >
+                  ${escapeHtml(
+                    product.name_en ||
+                    "Product"
+                  )}
+                </div>
+
+                <div
+                  class="catalog-card-th"
+                >
+                  ${escapeHtml(
+                    product.name_th ||
+                    ""
+                  )}
+                </div>
+
+                <div
+                  class="catalog-card-meta"
+                >
+
+                  <span>
+                    ${escapeHtml(
+                      product.category ||
+                      "—"
+                    )}
+                  </span>
+
+                  <span>
+                    ${escapeHtml(
+                      product.sku ||
+                      "—"
+                    )}
+                  </span>
+
+                </div>
+
+              </div>
+
+            </button>
+
+          `;
+
+        }
+      )
+      .join("");
+
+
+  grid
+    .querySelectorAll(
+      "[data-catalog-product-id]"
+    )
+    .forEach(
+      card => {
+
+        card.addEventListener(
+          "click",
+          () => {
+
+            const product =
+              allProducts.find(
+                item =>
+                  item.id ===
+                  card.dataset
+                    .catalogProductId
+              );
+
+            if (product) {
+
+              openProductDetail(
+                product
+              );
+
+            }
+
+          }
+        );
+
+      }
+    );
+
+}
+
+
+// ========================================
+// BUILD CATALOG PAGE
+// ========================================
+
+function buildCatalogPage() {
+
+  catalogPage.innerHTML = `
+
+    <div
+      class="catalog-page-wrap"
+    >
+
+      <div
+        class="section-header"
+      >
+
+        <div
+          class="section-title"
+        >
+          Catalog
+        </div>
+
+        <div
+          class="section-count"
+        >
+          All Products
+        </div>
+
+      </div>
+
+
+      <div
+        class="catalog-toolbar"
+      >
+
+        <input
+          id="catalogSearch"
+          class="catalog-search"
+          type="search"
+          autocomplete="off"
+          placeholder="Search product..."
+        >
+
+
+        <div
+          id="catalogFilterRow"
+          class="catalog-filter-row"
+        ></div>
+
+
+        <div
+          class="catalog-sort-row"
+        >
+
+          <button
+            class="
+              catalog-sort-button
+              active
+            "
+            data-catalog-sort="item"
+          >
+            ITEM
+          </button>
+
+          <button
+            class="catalog-sort-button"
+            data-catalog-sort="name"
+          >
+            A–Z
+          </button>
+
+          <button
+            class="catalog-sort-button"
+            data-catalog-sort="stock"
+          >
+            LOW STOCK
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="catalogCount"
+        class="catalog-count"
+      >
+        0 items
+      </div>
+
+
+      <div
+        id="catalogGrid"
+        class="catalog-grid"
+      ></div>
+
+    </div>
+
+  `;
+
+
+  const filterRow =
+    document.getElementById(
+      "catalogFilterRow"
+    );
+
+  const search =
+    document.getElementById(
+      "catalogSearch"
+    );
+
+
+  filterRow.innerHTML = `
+
+    <button
+      class="
+        catalog-filter-chip
+        active
+      "
+      data-catalog-category="all"
+    >
+      All
+    </button>
+
+    ${
+      catalogCategories()
+        .map(
+          category => `
+
+            <button
+              class="catalog-filter-chip"
+              data-catalog-category="${escapeHtml(
+                category
+              )}"
+            >
+              ${escapeHtml(
+                category
+              )}
+            </button>
+
+          `
+        )
+        .join("")
+    }
+
+  `;
+
+
+  search.addEventListener(
+    "input",
+    event => {
+
+      catalogKeyword =
+        event.target.value
+          .trim()
+          .toLowerCase();
+
+      renderCatalog();
+
+    }
+  );
+
+
+  filterRow
+    .querySelectorAll(
+      "[data-catalog-category]"
+    )
+    .forEach(
+      button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            catalogCategory =
+              button.dataset
+                .catalogCategory;
+
+
+            filterRow
+              .querySelectorAll(
+                ".catalog-filter-chip"
+              )
+              .forEach(
+                item =>
+                  item.classList
+                    .remove(
+                      "active"
+                    )
+              );
+
+
+            button.classList.add(
+              "active"
+            );
+
+
+            renderCatalog();
+
+          }
+        );
+
+      }
+    );
+
+
+  catalogPage
+    .querySelectorAll(
+      "[data-catalog-sort]"
+    )
+    .forEach(
+      button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            catalogSort =
+              button.dataset
+                .catalogSort;
+
+
+            catalogPage
+              .querySelectorAll(
+                "[data-catalog-sort]"
+              )
+              .forEach(
+                item =>
+                  item.classList
+                    .remove(
+                      "active"
+                    )
+              );
+
+
+            button.classList.add(
+              "active"
+            );
+
+
+            renderCatalog();
+
+          }
+        );
+
+      }
+    );
+
+}
+
+
+// ========================================
+// SHOW CATALOG PAGE
+// ========================================
+
+function showCatalogPage() {
+
+  homeElements.forEach(
+    element => {
+
+      if (element) {
+
+        element.style.display =
+          "none";
+
+      }
+
+    }
+  );
+
+
+  if (stockAlertSection) {
+
+    stockAlertSection.style.display =
+      "none";
+
+  }
+
+
+  stockPage.style.display =
+    "none";
+
+  dashboardPage.style.display =
+    "none";
+
+  catalogPage.style.display =
+    "block";
+
+
+  if (
+    !document.getElementById(
+      "catalogGrid"
+    )
+  ) {
+
+    buildCatalogPage();
+
+  }
+
+
+  renderCatalog();
+
+
+  setActiveNav(
+    navCatalog
+  );
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+}
+
+
+navCatalog.onclick =
+  showCatalogPage;
+
+
+// ========================================
+// PRODUCT MOVEMENT HISTORY
+// ========================================
+
+let productHistoryRequestId = 0;
+
+
+async function loadProductMovementHistory(
+  productId
+) {
+
+  if (!productHistoryList) {
+    return;
+  }
+
+
+  /*
+   * สร้าง request ID ใหม่ทุกครั้ง
+   * ที่มีการเปิดสินค้า
+   *
+   * ถ้าเปิดสินค้าใหม่ก่อน request เก่าเสร็จ
+   * request เก่าจะไม่มีสิทธิ์เอาข้อมูลมาแสดง
+   */
+
+  const requestId =
+    ++productHistoryRequestId;
+
+
+  productHistoryCount.textContent =
+    "...";
+
+
+  productHistoryList.innerHTML = `
+    <div class="calendar-empty">
+      Loading...
+    </div>
+  `;
+
+
+  const result =
+    await supabaseClient
+      .from("stock_movements")
+      .select(
+        "id, movement_type, quantity, note, created_at"
+      )
+      .eq(
+        "product_id",
+        productId
+      )
+      .order(
+        "created_at",
+        {
+          ascending: false
+        }
+      )
+      .limit(5);
+
+
+  /*
+   * ถ้ามีการเปิดสินค้าใหม่ระหว่างที่
+   * request นี้กำลังโหลดอยู่
+   *
+   * ยกเลิกการแสดงผลของ request เก่า
+   */
+
+  if (
+    requestId !==
+    productHistoryRequestId
+  ) {
+
+    return;
+
+  }
+
+
+  if (result.error) {
+
+    console.error(
+      "Product history error:",
+      result.error
+    );
+
+
+    productHistoryCount.textContent =
+      "—";
+
+
+    productHistoryList.innerHTML = `
+      <div class="calendar-empty">
+        โหลดประวัติไม่สำเร็จ
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  const movements =
+    result.data || [];
+
+
+  /*
+   * เช็กอีกครั้งก่อน render
+   */
+
+  if (
+    requestId !==
+    productHistoryRequestId
+  ) {
+
+    return;
+
+  }
+
+
+  productHistoryCount.textContent =
+    `${movements.length}`;
+
+
+  if (!movements.length) {
+
+    productHistoryList.innerHTML = `
+      <div class="calendar-empty">
+        ยังไม่มี Stock Movement
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  productHistoryList.innerHTML =
+    movements
+      .map(
+        movement => {
+
+          const isIn =
+            movement.movement_type ===
+            "IN";
+
+
+          const type =
+            isIn
+              ? "in"
+              : "out";
+
+
+          const sign =
+            isIn
+              ? "+"
+              : "-";
+
+
+          const note =
+            movement.note
+              ? escapeHtml(
+                  movement.note
+                )
+              : "No note";
+
+
+          return `
+            <div
+              class="product-history-row"
+            >
+
+              <div
+                class="product-history-main"
+              >
+
+                <div
+                  class="
+                    product-history-type
+                    ${type}
+                  "
+                >
+                  ${
+                    isIn
+                      ? "STOCK IN"
+                      : "STOCK OUT"
+                  }
+                </div>
+
+                <div
+                  class="
+                    product-history-note
+                  "
+                >
+                  ${note}
+                </div>
+
+              </div>
+
+
+              <div
+                class="
+                  product-history-right
+                "
+              >
+
+                <div
+                  class="
+                    product-history-qty
+                    ${type}
+                  "
+                >
+                  ${sign}${formatNumber(
+                    Number(
+                      movement.quantity
+                    ) || 0
+                  )}
+                </div>
+
+                <div
+                  class="
+                    product-history-time
+                  "
+                >
+                  ${formatBangkokTime(
+                    movement.created_at
+                  )}
+                </div>
+
+              </div>
+
+            </div>
+          `;
+
+        }
+      )
+      .join("");
+
+}
+
+
+// ========================================
+// ENHANCE PRODUCT DETAIL
+// ========================================
+
+const originalOpenProductDetail =
+  openProductDetail;
+
+
+openProductDetail =
+  function(product) {
+
+    originalOpenProductDetail(
+      product
+    );
+
+
+    if (detailCategory) {
+
+      detailCategory.textContent =
+        product.category ||
+        "—";
+
+    }
+
+
+    if (detailUnit) {
+
+      detailUnit.textContent =
+        product.unit ||
+        "—";
+
+    }
+
+
+    if (detailSize) {
+
+      detailSize.textContent =
+        product.size ||
+        "—";
+
+    }
+
+
+    if (detailPack) {
+
+      detailPack.textContent =
+        product.pack_detail ||
+        "—";
+
+    }
+
+
+    loadProductMovementHistory(
+      product.id
+    );
+
+  };
+
+
+// ========================================
+// KEEP CATALOG IN SYNC
+// ========================================
+
+const originalRefreshStockForCatalog =
+  refreshStock;
+
+
+refreshStock =
+  async function() {
+
+    await originalRefreshStockForCatalog();
+
+
+    if (
+      catalogPage.style.display !==
+      "none"
+    ) {
+
+      renderCatalog();
+
+    }
+
+  };
+
+
+// ========================================
+// HIDE CATALOG ON OTHER PAGES
+// ========================================
+
+const originalShowHomePageForCatalog =
+  showHomePage;
+
+
+showHomePage =
+  function() {
+
+    catalogPage.style.display =
+      "none";
+
+    originalShowHomePageForCatalog();
+
+  };
+
+
+const originalShowStockPageForCatalog =
+  showStockPage;
+
+
+showStockPage =
+  function() {
+
+    catalogPage.style.display =
+      "none";
+
+    originalShowStockPageForCatalog();
+
+  };
+
+
+const originalShowDashboardPageForCatalog =
+  showDashboardPage;
+
+
+showDashboardPage =
+  function() {
+
+    catalogPage.style.display =
+      "none";
+
+    originalShowDashboardPageForCatalog();
+
+  };
+
+
+// ========================================
+// RE-BIND NAVIGATION
+// ========================================
+
+navHome.onclick =
+  showHomePage;
+
+navStock.onclick =
+  showStockPage;
+
+navCatalog.onclick =
+  showCatalogPage;
+
+navDashboard.onclick =
+  showDashboardPage;
+
+
+// ========================================
+// END CATALOG ENHANCEMENT
+// ========================================
 
 
 // ========================================
