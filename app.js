@@ -17,8 +17,12 @@ const supabaseClient =
 
 let allProducts = [];
 let stockMap = {};
+
 let currentCategory = "all";
 let searchKeyword = "";
+
+let selectedProduct = null;
+let selectedMovementType = null;
 
 
 // ========================================
@@ -36,6 +40,24 @@ const searchInput =
 
 const categoryRow =
   document.getElementById("categoryRow");
+
+
+// Stock Alert
+
+const stockAlertSection =
+  document.getElementById(
+    "stockAlertSection"
+  );
+
+const stockAlertList =
+  document.getElementById(
+    "stockAlertList"
+  );
+
+const stockAlertCount =
+  document.getElementById(
+    "stockAlertCount"
+  );
 
 
 // ========================================
@@ -602,8 +624,10 @@ modal.innerHTML = `
 
     <div class="modal-top">
 
-      <div class="detail-number"
-        id="detailNumber">
+      <div
+        class="detail-number"
+        id="detailNumber"
+      >
         ITEM 00
       </div>
 
@@ -899,14 +923,6 @@ const formMessage =
 
 
 // ========================================
-// CURRENT PRODUCT
-// ========================================
-
-let selectedProduct = null;
-let selectedMovementType = null;
-
-
-// ========================================
 // LOAD PRODUCTS
 // ========================================
 
@@ -918,6 +934,8 @@ async function loadProducts() {
     </div>
   `;
 
+
+  // Load products
 
   const productsResult =
     await supabaseClient
@@ -932,6 +950,7 @@ async function loadProducts() {
   if (productsResult.error) {
 
     console.error(
+      "Products error:",
       productsResult.error
     );
 
@@ -981,11 +1000,260 @@ async function loadProducts() {
   }
 
 
+  // Build category
+
   buildCategories();
+
+
+  // Render Stock Alert
+
+  renderStockAlerts();
+
+
+  // Render products
 
   renderProducts(
     allProducts
   );
+
+}
+
+
+// ========================================
+// STOCK ALERT
+// ========================================
+
+function renderStockAlerts() {
+
+  // ถ้า HTML ไม่มีส่วน Alert
+  // ไม่ทำอะไร
+
+  if (
+    !stockAlertSection ||
+    !stockAlertList ||
+    !stockAlertCount
+  ) {
+
+    console.warn(
+      "Stock Alert elements not found."
+    );
+
+    return;
+
+  }
+
+
+  // หาสินค้าที่ Current Stock
+  // น้อยกว่าหรือเท่ากับ Minimum Stock
+
+  const alertItems =
+    allProducts
+      .map(product => {
+
+        const stock =
+          stockMap[product.id];
+
+
+        const currentStock =
+          stock
+            ? Number(stock.current_stock)
+            : 0;
+
+
+        const minStock =
+          stock
+            ? Number(stock.min_stock)
+            : Number(
+                product.min_stock || 5
+              );
+
+
+        return {
+
+          ...product,
+
+          current_stock:
+            currentStock,
+
+          min_stock:
+            minStock
+
+        };
+
+      })
+      .filter(item => {
+
+        return (
+          item.current_stock <=
+          item.min_stock
+        );
+
+      })
+      .sort((a, b) => {
+
+        if (
+          a.current_stock !==
+          b.current_stock
+        ) {
+
+          return (
+            a.current_stock -
+            b.current_stock
+          );
+
+        }
+
+
+        return (
+          a.item_no -
+          b.item_no
+        );
+
+      });
+
+
+  // ไม่มีรายการ Low Stock
+
+  if (!alertItems.length) {
+
+    stockAlertSection.style.display =
+      "none";
+
+    stockAlertCount.textContent =
+      "0 items";
+
+    stockAlertList.innerHTML =
+      "";
+
+    return;
+
+  }
+
+
+  // มีรายการ Low Stock
+
+  stockAlertSection.style.display =
+    "block";
+
+
+  stockAlertCount.textContent =
+    `${alertItems.length} items`;
+
+
+  stockAlertList.innerHTML =
+    alertItems
+      .map(item => {
+
+        const itemNumber =
+          String(item.item_no)
+            .padStart(2, "0");
+
+
+        return `
+
+          <button
+            class="stock-alert-item"
+            data-product-id="${escapeHtml(
+              item.id
+            )}"
+          >
+
+            <div class="stock-alert-main">
+
+              <div class="stock-alert-number">
+                ${itemNumber}
+              </div>
+
+
+              <div class="stock-alert-info">
+
+                <div
+                  class="stock-alert-name-en"
+                >
+                  ${escapeHtml(
+                    item.name_en || ""
+                  )}
+                </div>
+
+
+                <div
+                  class="stock-alert-name-th"
+                >
+                  ${escapeHtml(
+                    item.name_th || ""
+                  )}
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div class="stock-alert-stock">
+
+              <div
+                class="stock-alert-current"
+              >
+                ${formatNumber(
+                  item.current_stock
+                )}
+              </div>
+
+
+              <div
+                class="stock-alert-min"
+              >
+                /
+                ${formatNumber(
+                  item.min_stock
+                )}
+              </div>
+
+            </div>
+
+          </button>
+
+        `;
+
+      })
+      .join("");
+
+
+  // Click Alert
+  // → เปิด Product Detail
+
+  stockAlertList
+    .querySelectorAll(
+      ".stock-alert-item"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const product =
+            allProducts.find(
+              item =>
+                item.id ===
+                button.dataset
+                  .productId
+            );
+
+
+          if (product) {
+
+            openProductDetail(
+              product
+            );
+
+          }
+
+        }
+      );
+
+    });
+
 }
 
 
@@ -998,7 +1266,9 @@ function buildCategories() {
   const categories = [
     ...new Set(
       allProducts
-        .map(product => product.category)
+        .map(product =>
+          product.category
+        )
         .filter(Boolean)
         .map(category =>
           category.trim()
@@ -1027,14 +1297,18 @@ function buildCategories() {
           "button"
         );
 
+
       button.className =
         "category-chip";
+
 
       button.dataset.category =
         category;
 
+
       button.textContent =
         category;
+
 
       categoryRow.appendChild(
         button
@@ -1096,6 +1370,7 @@ searchInput.addEventListener(
       event.target.value
         .trim()
         .toLowerCase();
+
 
     applyFilters();
 
@@ -1171,7 +1446,10 @@ function applyFilters() {
   }
 
 
-  renderProducts(filtered);
+  renderProducts(
+    filtered
+  );
+
 }
 
 
@@ -1179,7 +1457,9 @@ function applyFilters() {
 // RENDER PRODUCTS
 // ========================================
 
-function renderProducts(products) {
+function renderProducts(
+  products
+) {
 
   productCount.textContent =
     `${products.length} items`;
@@ -1194,112 +1474,132 @@ function renderProducts(products) {
     `;
 
     return;
+
   }
 
 
   productGrid.innerHTML =
-    products.map(product => {
+    products
+      .map(product => {
 
-      const itemNumber =
-        String(product.item_no)
-          .padStart(2, "0");
-
-
-      const stock =
-        stockMap[product.id];
+        const itemNumber =
+          String(product.item_no)
+            .padStart(2, "0");
 
 
-      const currentStock =
-        stock
-          ? Number(stock.current_stock)
-          : 0;
+        const stock =
+          stockMap[product.id];
 
 
-      const minStock =
-        stock
-          ? Number(stock.min_stock)
-          : Number(product.min_stock || 5);
+        const currentStock =
+          stock
+            ? Number(
+                stock.current_stock
+              )
+            : 0;
 
 
-      const isLow =
-        currentStock <= minStock;
+        const minStock =
+          stock
+            ? Number(
+                stock.min_stock
+              )
+            : Number(
+                product.min_stock ||
+                5
+              );
 
 
-      return `
-
-        <article
-          class="product-card"
-          data-product-id="${product.id}"
-        >
-
-          <div class="product-image">
-
-            <img
-              src="${escapeHtml(
-                product.image_url || ""
-              )}"
-              alt="${escapeHtml(
-                product.name_en || ""
-              )}"
-              loading="lazy"
-            />
+        const isLow =
+          currentStock <=
+          minStock;
 
 
-            <div class="item-number">
-              ${itemNumber}
-            </div>
+        return `
 
-          </div>
+          <article
+            class="product-card"
+            data-product-id="${escapeHtml(
+              product.id
+            )}"
+          >
+
+            <div class="product-image">
+
+              <img
+                src="${escapeHtml(
+                  product.image_url || ""
+                )}"
+                alt="${escapeHtml(
+                  product.name_en || ""
+                )}"
+                loading="lazy"
+              />
 
 
-          <div class="product-info">
+              <div class="item-number">
+                ${itemNumber}
+              </div>
 
-            <div class="product-name-en">
-              ${escapeHtml(
-                product.name_en ||
-                "Product"
-              )}
-            </div>
-
-
-            <div class="product-name-th">
-              ${escapeHtml(
-                product.name_th || ""
-              )}
             </div>
 
 
-            <div class="product-meta">
+            <div class="product-info">
 
-              <div class="product-unit">
+              <div class="product-name-en">
                 ${escapeHtml(
-                  product.unit || "—"
+                  product.name_en ||
+                  "Product"
                 )}
               </div>
 
 
-              <div class="stock-status">
+              <div class="product-name-th">
+                ${escapeHtml(
+                  product.name_th || ""
+                )}
+              </div>
 
-                <span class="stock-dot"></span>
 
-                <span>
-                  ${isLow
-                    ? "Low Stock"
-                    : `${formatNumber(currentStock)} Stock`
-                  }
-                </span>
+              <div class="product-meta">
+
+                <div class="product-unit">
+                  ${escapeHtml(
+                    product.unit ||
+                    "—"
+                  )}
+                </div>
+
+
+                <div class="stock-status">
+
+                  <span
+                    class="stock-dot"
+                  ></span>
+
+
+                  <span>
+                    ${
+                      isLow
+                        ? "Low Stock"
+                        : `${formatNumber(
+                            currentStock
+                          )} Stock`
+                    }
+                  </span>
+
+                </div>
 
               </div>
 
             </div>
 
-          </div>
+          </article>
 
-        </article>
+        `;
 
-      `;
-
-    }).join("");
+      })
+      .join("");
 
 
   // Card click
@@ -1318,7 +1618,8 @@ function renderProducts(products) {
             allProducts.find(
               item =>
                 item.id ===
-                card.dataset.productId
+                card.dataset
+                  .productId
             );
 
 
@@ -1356,23 +1657,32 @@ function openProductDetail(
 
   const currentStock =
     stock
-      ? Number(stock.current_stock)
+      ? Number(
+          stock.current_stock
+        )
       : 0;
 
 
   const minStock =
     stock
-      ? Number(stock.min_stock)
-      : Number(product.min_stock || 5);
+      ? Number(
+          stock.min_stock
+        )
+      : Number(
+          product.min_stock ||
+          5
+        );
 
 
   const isLow =
-    currentStock <= minStock;
+    currentStock <=
+    minStock;
 
 
   detailNumber.textContent =
-    `ITEM ${String(product.item_no)
-      .padStart(2, "0")}`;
+    `ITEM ${String(
+      product.item_no
+    ).padStart(2, "0")}`;
 
 
   detailImage.src =
@@ -1392,11 +1702,17 @@ function openProductDetail(
 
 
   detailStock.textContent =
-    formatNumber(currentStock);
+    formatNumber(
+      currentStock
+    );
 
 
   detailMin.textContent =
-    `Minimum Stock: ${formatNumber(minStock)} ${product.unit || ""}`;
+    `Minimum Stock: ${
+      formatNumber(minStock)
+    } ${
+      product.unit || ""
+    }`;
 
 
   stockBadgeText.textContent =
@@ -1415,11 +1731,16 @@ function openProductDetail(
     .remove("show");
 
 
-  movementQuantity.value = "";
+  movementQuantity.value =
+    "";
 
-  movementNote.value = "";
 
-  formMessage.textContent = "";
+  movementNote.value =
+    "";
+
+
+  formMessage.textContent =
+    "";
 
 
   modalOverlay.classList
@@ -1441,12 +1762,17 @@ function closeModal() {
   modalOverlay.classList
     .remove("show");
 
+
   document.body.style.overflow =
     "";
 
-  selectedProduct = null;
 
-  selectedMovementType = null;
+  selectedProduct =
+    null;
+
+
+  selectedMovementType =
+    null;
 
 }
 
@@ -1514,7 +1840,9 @@ stockInButton.addEventListener(
 
     movementQuantity.focus();
 
-    formMessage.textContent = "";
+
+    formMessage.textContent =
+      "";
 
   }
 );
@@ -1542,7 +1870,9 @@ stockOutButton.addEventListener(
 
     movementQuantity.focus();
 
-    formMessage.textContent = "";
+
+    formMessage.textContent =
+      "";
 
   }
 );
@@ -1584,12 +1914,13 @@ movementSubmit.addEventListener(
       formMessage.textContent =
         "กรุณาระบุจำนวน";
 
+
       return;
 
     }
 
 
-    // Check current stock
+    // Current stock
 
     const stock =
       stockMap[
@@ -1599,17 +1930,29 @@ movementSubmit.addEventListener(
 
     const currentStock =
       stock
-        ? Number(stock.current_stock)
+        ? Number(
+            stock.current_stock
+          )
         : 0;
 
 
+    // ป้องกัน Stock Out
+    // มากกว่าสต็อกที่มี
+
     if (
-      selectedMovementType === "OUT" &&
-      quantity > currentStock
+      selectedMovementType ===
+        "OUT" &&
+      quantity >
+        currentStock
     ) {
 
       formMessage.textContent =
-        `สต็อกไม่พอ เหลือ ${formatNumber(currentStock)}`;
+        `สต็อกไม่พอ เหลือ ${
+          formatNumber(
+            currentStock
+          )
+        }`;
+
 
       return;
 
@@ -1627,6 +1970,8 @@ movementSubmit.addEventListener(
     formMessage.textContent =
       "";
 
+
+    // Insert movement
 
     const { error } =
       await supabaseClient
@@ -1659,11 +2004,14 @@ movementSubmit.addEventListener(
       formMessage.textContent =
         "บันทึกไม่สำเร็จ";
 
+
       movementSubmit.disabled =
         false;
 
+
       movementSubmit.textContent =
         "Confirm";
+
 
       return;
 
@@ -1688,6 +2036,7 @@ movementSubmit.addEventListener(
 
     movementSubmit.disabled =
       false;
+
 
     movementSubmit.textContent =
       "Confirm";
@@ -1715,6 +2064,7 @@ async function refreshStock() {
       error
     );
 
+
     return;
 
   }
@@ -1723,15 +2073,21 @@ async function refreshStock() {
   stockMap = {};
 
 
-  (data || []).forEach(
-    stock => {
+  (data || [])
+    .forEach(stock => {
 
       stockMap[stock.id] =
         stock;
 
-    }
-  );
+    });
 
+
+  // Update Stock Alert
+
+  renderStockAlerts();
+
+
+  // Update Product Cards
 
   applyFilters();
 
@@ -1777,7 +2133,9 @@ function escapeHtml(
   value
 ) {
 
-  return String(value)
+  return String(
+    value ?? ""
+  )
     .replace(
       /&/g,
       "&amp;"
