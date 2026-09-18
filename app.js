@@ -20,10 +20,18 @@ async function loadProducts() {
     .order("item_no", { ascending: true });
 
   if (error) {
-    console.error("Supabase error:", error);
-    status.textContent = "โหลดข้อมูลไม่สำเร็จ";
-    return;
-  }
+  console.error("Supabase error:", error);
+
+  status.innerHTML = `
+    <strong>โหลดข้อมูลไม่สำเร็จ</strong>
+    <br><br>
+    ${error.message}
+    <br><br>
+    Code: ${error.code || "ไม่มี"}
+  `;
+
+  return;
+}
 
   console.log("Products loaded:", data);
 
