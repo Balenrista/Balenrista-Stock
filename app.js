@@ -9649,8 +9649,153 @@ function getAIStock(product) {
 
 
 // ========================================
-// MOVEMENTS
+// AI STOCK STATUS TEXT
 // ========================================
+
+function getAIStockStatusText(info) {
+
+  if (!info) {
+    return "";
+  }
+
+
+  if (info.status === "OUT") {
+
+    return "🔴 OUT OF STOCK";
+
+  }
+
+
+  if (info.status === "LOW") {
+
+    return "🟠 LOW STOCK";
+
+  }
+
+
+  return "🟢 NORMAL";
+
+}
+
+
+// ========================================
+// LOW STOCK
+// ========================================
+
+function getAILowStock() {
+
+  return allProducts
+    .map(product => {
+
+      const info =
+        getAIStock(product);
+
+
+      return {
+
+        product,
+
+        ...info
+
+      };
+
+    })
+    .filter(item =>
+
+      item.stock <=
+      item.minStock
+
+    )
+    .sort(
+      (a,b) => {
+
+        if (
+          a.stock !==
+          b.stock
+        ) {
+
+          return (
+            a.stock -
+            b.stock
+          );
+
+        }
+
+
+        return (
+          a.product.item_no -
+          b.product.item_no
+        );
+
+      }
+    );
+
+}
+
+
+// ========================================
+// PRODUCT STOCK RESPONSE
+// ========================================
+
+function buildAIProductStockResponse(
+  product
+) {
+
+  const info =
+    getAIStock(product);
+
+
+  if (!info) {
+
+    return `
+      ไม่พบข้อมูลสต็อกของสินค้านี้ครับ 😅
+    `;
+
+  }
+
+
+  const statusText =
+    getAIStockStatusText(
+      info
+    );
+
+
+  return `
+
+    <strong>
+      ${product.name_th}
+    </strong>
+
+    <br>
+
+    ${product.name_en}
+
+    <br><br>
+
+    📦 Current Stock:
+
+    <strong>
+      ${info.stock}
+    </strong>
+
+    ${product.unit}
+
+    <br>
+
+    Minimum Stock:
+
+    ${info.minStock}
+
+    <br><br>
+
+    ${statusText}
+
+  `;
+
+}
+
+
+
 
 // ========================================
 // MOVEMENTS
