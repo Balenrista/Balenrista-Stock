@@ -9152,55 +9152,391 @@ async function refreshDashboard() {
 let aiConversationProduct = null;
 
 
+// ========================================
+// AI TEXT NORMALIZER
+// ========================================
+
 function normalizeAIText(text) {
 
   return String(text || "")
     .toLowerCase()
-    .trim();
+    .trim()
+    .replace(/\s+/g, " ");
 
 }
 
+
+function compactAIText(text) {
+
+  return normalizeAIText(text)
+    .replace(
+      /[\s\-_,./\\()[\]{}:;!?'"`~@#$%^&*+=|<>]/g,
+      ""
+    );
+
+}
+
+
+// ========================================
+// AI DATE HELPERS
+// ========================================
+
+function getAIBangkokDate(date = new Date()) {
+
+  return new Intl.DateTimeFormat(
+    "en-CA",
+    {
+      timeZone: "Asia/Bangkok",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }
+  ).format(date);
+
+}
+
+
+function isAIToday(dateString) {
+
+  if (!dateString) {
+    return false;
+  }
+
+  return (
+    getAIBangkokDate(
+      new Date(dateString)
+    ) ===
+    getAIBangkokDate()
+  );
+
+}
+
+
+// ========================================
+// AI PRODUCT ALIASES
+// ========================================
+
+const aiProductAliases = {
+
+  1: [
+    "ขวดแยกน้ำกาแฟ",
+    "ขวดกาแฟ",
+    "ขวดแยก",
+    "bottled coffee",
+    "coffee bottle",
+    "bottle coffee"
+  ],
+
+  2: [
+    "อโรม่า กล่องแดง",
+    "อโรม่าแดง",
+    "อโรม่า แดง",
+    "aroma กล่องแดง",
+    "aroma แดง",
+    "aroma red",
+    "liquid creamer",
+    "creamer"
+  ],
+
+  3: [
+    "นมข้น",
+    "นมข้นหวาน",
+    "คาเนชั่น",
+    "carnation",
+    "condensed milk",
+    "sweetened condensed milk"
+  ],
+
+  4: [
+    "อโรม่า กล่องเหลือง",
+    "อโรม่าเหลือง",
+    "อโรม่า เหลือง",
+    "aroma กล่องเหลือง",
+    "aroma เหลือง",
+    "aroma yellow",
+    "unsweetened milk"
+  ],
+
+  5: [
+    "น้ำผึ้ง",
+    "น้ำผึ้งดอยคำ",
+    "ดอยคำ",
+    "doikhum",
+    "doi kham",
+    "doi kham honey",
+    "honey"
+  ],
+
+  6: [
+    "แก้ว",
+    "แก้ว pet",
+    "แก้วพลาสติก",
+    "แก้ว 20oz",
+    "20oz",
+    "20 oz",
+    "plastic cup",
+    "pet cup"
+  ],
+
+  7: [
+    "ฝายกดื่ม",
+    "ฝา 98",
+    "ฝา 98mm",
+    "ฝาแก้ว 98",
+    "sip lid",
+    "98mm lid"
+  ],
+
+  8: [
+    "มัจฉะ",
+    "มัทฉะ",
+    "มัทฉะ ชาตรามือ",
+    "มัจฉะ ชาตรามือ",
+    "matcha",
+    "matcha green tea"
+  ],
+
+  9: [
+    "ชาเขียว",
+    "ชาเขียว ชาตรามือ",
+    "green tea"
+  ],
+
+  10: [
+    "ชาไทย",
+    "ชาไทย ชาตรามือ",
+    "thai tea",
+    "thai tea chatramue"
+  ],
+
+  11: [
+    "ชาเอิร์ลเกรย์",
+    "เอิร์ลเกรย์",
+    "earl grey",
+    "twinings",
+    "twinings earl grey"
+  ],
+
+  12: [
+    "ไซรัปยูสุ",
+    "ไซรัปส้มยูสุ",
+    "ส้มยูสุ",
+    "ยูสุ",
+    "yuzu",
+    "yuzu syrup"
+  ],
+
+  13: [
+    "ไซรัปส้ม",
+    "ส้ม",
+    "orange syrup",
+    "syrup orange"
+  ],
+
+  14: [
+    "โฮจิฉะ",
+    "โฮจิฉะ คาวามิ",
+    "คาวามิ โฮจิฉะ",
+    "houjicha",
+    "houjicha kawami"
+  ],
+
+  15: [
+    "ช็อกโกแลต",
+    "chocolate",
+    "cacao",
+    "cacao rich"
+  ],
+
+  16: [
+    "ถุงเดี่ยว",
+    "ถุงใส่แก้วเดี่ยว",
+    "ถุงใส่แก้ว",
+    "ถุงแก้วเดี่ยว",
+    "single cup",
+    "single-cup carrier"
+  ],
+
+  17: [
+    "ไซรัปมะพร้าว",
+    "มะพร้าว",
+    "coconut syrup",
+    "syrup coconut"
+  ],
+
+  18: [
+    "ไซรัปสตอเบอรี่",
+    "ไซรัปสตรอเบอรี่",
+    "สตอเบอรี่",
+    "สตรอเบอรี่",
+    "strawberry syrup",
+    "syrup strawberry"
+  ],
+
+  19: [
+    "หลอดงอ 5",
+    "หลอด 5",
+    "หลอด 5mm",
+    "flexible straw 5",
+    "straw 5"
+  ],
+
+  20: [
+    "หลอดงอ 8",
+    "หลอด 8",
+    "หลอด 8mm",
+    "flexible straw 8",
+    "straw 8"
+  ],
+
+  21: [
+    "ไซรัปคาราเมล",
+    "คาราเมล",
+    "caramel syrup",
+    "longbeach caramel"
+  ],
+
+  22: [
+    "ไซรัปสัปปะรด",
+    "ไซรัปสับปะรด",
+    "สัปปะรด",
+    "สับปะรด",
+    "pineapple syrup",
+    "syrup pineapple"
+  ],
+
+  23: [
+    "ถุงใส่แก้วคู่",
+    "ถุงแก้วคู่",
+    "ถุง 2 แก้ว",
+    "2 cup",
+    "2-cup carrier",
+    "carrier bag"
+  ],
+
+  24: [
+    "ฝาฮาฟ",
+    "ฝาฮาฟยกดื่ม",
+    "ฝาครึ่งโดม",
+    "half dome",
+    "half-dome",
+    "half dome sip lid"
+  ],
+
+  25: [
+    "ไซรัปลิ้นจี่",
+    "ลิ้นจี่",
+    "lychee syrup",
+    "syrup lychee"
+  ],
+
+  26: [
+    "เลม่อน",
+    "เลมอน",
+    "มะนาว",
+    "lemon"
+  ],
+
+  27: [
+    "ส้มดอง",
+    "mandarin",
+    "mandarin oranges",
+    "orange can"
+  ],
+
+  28: [
+    "ไซรัปใส",
+    "ไซรัปธรรมดา",
+    "simple syrup"
+  ],
+
+  29: [
+    "อูจิ",
+    "อูจิมัจฉะ",
+    "มัจฉะคาวามิ",
+    "อูจิ มัจฉะคาวามิ",
+    "uji matcha",
+    "uji matcha kawami"
+  ],
+
+  30: [
+    "น้ำช่อดอกมะพร้าว",
+    "ช่อดอกมะพร้าว",
+    "น้ำช่อมะพร้าว",
+    "coconut flower",
+    "coconut blossom"
+  ],
+
+  31: [
+    "สายคาดแก้ว",
+    "ปลอกแก้ว",
+    "ที่คาดแก้ว",
+    "cup sleeve",
+    "cup-sleeve",
+    "sleeve"
+  ]
+
+};
+
+
+// ========================================
+// FIND PRODUCT
+// ========================================
 
 function findAIProduct(question) {
 
   const q =
     normalizeAIText(question);
 
+  const compact =
+    compactAIText(question);
+
   if (!q) {
     return null;
   }
 
 
-  // SKU
+  // --------------------------------------
+  // 1. SKU
+  // --------------------------------------
+
   const skuMatch =
-    allProducts.find(product =>
-      q.includes(
+    allProducts.find(product => {
+
+      const sku =
         normalizeAIText(
           product.sku
+        );
+
+      return (
+        sku &&
+        compact.includes(
+          compactAIText(sku)
         )
-      )
-    );
+      );
+
+    });
 
   if (skuMatch) {
     return skuMatch;
   }
 
 
-  // Item number
+  // --------------------------------------
+  // 2. ITEM NUMBER
+  // --------------------------------------
+
   const itemMatch =
     allProducts.find(product => {
 
       const number =
         String(product.item_no)
-          .padStart(2,"0");
+          .padStart(2, "0");
 
       return (
-        q.includes(
-          `item ${number}`
-        ) ||
-        q.includes(
-          `item${number}`
-        )
+        q.includes(`item ${number}`) ||
+        q.includes(`item${number}`) ||
+        q.includes(`#${number}`)
       );
 
     });
@@ -9210,121 +9546,213 @@ function findAIProduct(question) {
   }
 
 
-  // Thai / English name
-  const nameMatch =
-    allProducts
-      .filter(product => {
+  // --------------------------------------
+  // 3. EXACT PRODUCT NAME
+  // --------------------------------------
 
-        const th =
-          normalizeAIText(
-            product.name_th
-          );
+  const exactMatches =
+    allProducts.filter(product => {
 
-        const en =
-          normalizeAIText(
-            product.name_en
-          );
-
-        return (
-          q.includes(th) ||
-          q.includes(en)
+      const th =
+        compactAIText(
+          product.name_th
         );
 
-      })
-      .sort(
-        (a,b) =>
+      const en =
+        compactAIText(
+          product.name_en
+        );
+
+      return (
+        (th && compact.includes(th)) ||
+        (en && compact.includes(en))
+      );
+
+    });
+
+
+  if (exactMatches.length) {
+
+    return exactMatches
+      .sort((a, b) => {
+
+        const aLength =
           Math.max(
             a.name_th.length,
             a.name_en.length
-          )
-          -
+          );
+
+        const bLength =
           Math.max(
             b.name_th.length,
             b.name_en.length
-          )
-      )
-      .pop();
+          );
 
+        return bLength - aLength;
 
-  if (nameMatch) {
-    return nameMatch;
+      })[0];
+
   }
 
 
-  // Keywords
-  const keywordMap = [
+  // --------------------------------------
+  // 4. ALIASES
+  // --------------------------------------
 
-    ["ชาไทย","Thai Tea"],
-    ["thai tea","Thai Tea"],
+  const aliasMatches = [];
 
-    ["ชาเขียว","Green Tea"],
-    ["green tea","Green Tea"],
+  for (const product of allProducts) {
 
-    ["มัจฉะ","Matcha"],
-    ["matcha","Matcha"],
+    const aliases =
+      aiProductAliases[
+        product.item_no
+      ] || [];
 
-    ["โฮจิฉะ","Houjicha"],
-    ["houjicha","Houjicha"],
+    let bestLength = 0;
 
-    ["น้ำผึ้ง","Honey"],
-    ["honey","Honey"],
+    for (const alias of aliases) {
 
-    ["แก้ว","Cup"],
-    ["cup","Cup"],
+      const aliasText =
+        compactAIText(alias);
 
-    ["ฝา","Lid"],
-    ["lid","Lid"],
+      if (
+        aliasText &&
+        compact.includes(aliasText)
+      ) {
 
-    ["หลอด","Straw"],
-    ["straw","Straw"],
+        bestLength =
+          Math.max(
+            bestLength,
+            aliasText.length
+          );
 
-    ["ไซรัป","Syrup"],
-    ["syrup","Syrup"]
-
-  ];
-
-
-  for (const [
-    keyword,
-    category
-  ] of keywordMap) {
-
-    if (
-      q.includes(keyword)
-    ) {
-
-      const matches =
-        allProducts.filter(
-          product => {
-
-            const text =
-              normalizeAIText(
-                product.name_th +
-                " " +
-                product.name_en
-              );
-
-            return (
-              text.includes(
-                normalizeAIText(
-                  keyword
-                )
-              ) ||
-              text.includes(
-                normalizeAIText(
-                  category
-                )
-              )
-            );
-
-          }
-        );
-
-      if (matches.length === 1) {
-        return matches[0];
       }
 
     }
+
+    if (bestLength > 0) {
+
+      aliasMatches.push({
+        product,
+        score: bestLength
+      });
+
+    }
+
+  }
+
+
+  if (aliasMatches.length) {
+
+    aliasMatches.sort(
+      (a, b) =>
+        b.score - a.score
+    );
+
+    return aliasMatches[0].product;
+
+  }
+
+
+  // --------------------------------------
+  // 5. DISTINCTIVE WORD MATCH
+  // --------------------------------------
+
+  const stopWords = new Set([
+
+    "เหลือ",
+    "เท่าไหร่",
+    "เท่าไร",
+    "กี่",
+    "มี",
+    "ไหม",
+    "มั้ย",
+    "อะไร",
+    "ไหน",
+    "ของ",
+    "สินค้า",
+    "สต็อก",
+    "stock",
+    "วันนี้",
+    "เมื่อวาน",
+    "ตอนนี้",
+    "เท่าไรครับ",
+    "เท่าไหร่ครับ",
+    "ครับ",
+    "ค่ะ",
+    "คะ",
+    "หน่อย",
+    "แล้ว",
+    "ล่ะ",
+    "ละ",
+    "ไหมครับ",
+    "มั้ยครับ"
+
+  ]);
+
+
+  const words =
+    q
+      .split(/[\s,!?]+/)
+      .filter(word =>
+        word.length >= 2 &&
+        !stopWords.has(word)
+      );
+
+
+  const scoredProducts =
+    allProducts.map(product => {
+
+      const text =
+        normalizeAIText(
+          product.name_th +
+          " " +
+          product.name_en
+        );
+
+      let score = 0;
+
+      for (const word of words) {
+
+        if (
+          text.includes(word)
+        ) {
+
+          score +=
+            Math.min(
+              word.length,
+              10
+            );
+
+        }
+
+      }
+
+      return {
+        product,
+        score
+      };
+
+    })
+    .filter(item =>
+      item.score > 0
+    )
+    .sort(
+      (a,b) =>
+        b.score - a.score
+    );
+
+
+  if (
+    scoredProducts.length &&
+    (
+      scoredProducts.length === 1 ||
+      scoredProducts[0].score >
+      scoredProducts[1].score
+    )
+  ) {
+
+    return scoredProducts[0].product;
 
   }
 
@@ -9332,6 +9760,12 @@ function findAIProduct(question) {
   return null;
 
 }
+
+
+// ========================================
+// GET CURRENT STOCK
+// ========================================
+
 function getAIStock(product) {
 
   if (!product) {
@@ -9353,18 +9787,51 @@ function getAIStock(product) {
       product.min_stock ?? 5
     );
 
+  let status = "NORMAL";
+
+  if (stock <= 0) {
+    status = "OUT";
+  }
+  else if (stock <= minStock) {
+    status = "LOW";
+  }
+
   return {
     stock,
     minStock,
-    status:
-      stock <= 0
-        ? "OUT"
-        : stock <= minStock
-          ? "LOW"
-          : "NORMAL"
+    status
   };
 
 }
+
+
+// ========================================
+// STOCK STATUS TEXT
+// ========================================
+
+function getAIStockStatusText(info) {
+
+  if (!info) {
+    return "";
+  }
+
+  if (info.status === "OUT") {
+    return "🔴 OUT OF STOCK";
+  }
+
+  if (info.status === "LOW") {
+    return "🟠 LOW STOCK";
+  }
+
+  return "🟢 NORMAL";
+
+}
+
+
+// ========================================
+// LOW STOCK
+// ========================================
+
 function getAILowStock() {
 
   return allProducts
@@ -9384,11 +9851,27 @@ function getAILowStock() {
       item.minStock
     )
     .sort(
-      (a,b) =>
-        a.stock - b.stock
+      (a,b) => {
+
+        if (a.stock !== b.stock) {
+          return a.stock - b.stock;
+        }
+
+        return (
+          a.product.item_no -
+          b.product.item_no
+        );
+
+      }
     );
 
 }
+
+
+// ========================================
+// GET MOVEMENTS
+// ========================================
+
 async function getAIMovements() {
 
   const {
@@ -9397,27 +9880,189 @@ async function getAIMovements() {
   } =
     await supabaseClient
       .from("stock_movements")
-      .select("*")
+      .select(
+        "id, product_id, movement_type, quantity, note, created_at"
+      )
       .order(
         "created_at",
         {
-          ascending:false
+          ascending: false
         }
       )
-      .limit(100);
+      .limit(500);
 
   if (error) {
+
     console.error(
       "AI movement error:",
       error
     );
 
     return [];
+
   }
 
   return data || [];
 
 }
+
+
+// ========================================
+// MOVEMENT PRODUCT
+// ========================================
+
+function getAIMovementProduct(row) {
+
+  if (!row) {
+    return null;
+  }
+
+  return (
+    allProducts.find(
+      product =>
+        product.id === row.product_id
+    ) ||
+    null
+  );
+
+}
+
+
+// ========================================
+// FILTER TODAY
+// ========================================
+
+function getAITodayMovements(
+  movements,
+  product = null
+) {
+
+  return movements.filter(row => {
+
+    if (
+      !isAIToday(
+        row.created_at
+      )
+    ) {
+      return false;
+    }
+
+    if (
+      product &&
+      row.product_id !== product.id
+    ) {
+      return false;
+    }
+
+    return true;
+
+  });
+
+}
+
+
+// ========================================
+// FORMAT MOVEMENT LIST
+// ========================================
+
+function formatAIMovementList(
+  rows,
+  limit = 10
+) {
+
+  return rows
+    .slice(0, limit)
+    .map(row => {
+
+      const product =
+        getAIMovementProduct(row);
+
+      const type =
+        String(
+          row.movement_type || ""
+        ).toUpperCase();
+
+      const icon =
+        type === "IN"
+          ? "🟢"
+          : "🔴";
+
+      const name =
+        product
+          ? product.name_th
+          : "ไม่ทราบสินค้า";
+
+      const unit =
+        product
+          ? product.unit
+          : "";
+
+      const note =
+        row.note
+          ? ` — ${row.note}`
+          : "";
+
+      return `
+        ${icon}
+        <strong>${name}</strong>
+        — ${type}
+        ${row.quantity} ${unit}
+        ${note}
+      `;
+
+    })
+    .join("<br>");
+
+}
+
+
+// ========================================
+// PRODUCT STOCK RESPONSE
+// ========================================
+
+function buildAIProductStockResponse(
+  product
+) {
+
+  const info =
+    getAIStock(product);
+
+  if (!info) {
+
+    return `
+      ไม่พบข้อมูลสต็อกของสินค้านี้ครับ 😅
+    `;
+
+  }
+
+  const statusText =
+    getAIStockStatusText(info);
+
+  return `
+    <strong>${product.name_th}</strong><br>
+    ${product.name_en}<br><br>
+
+    📦 Current Stock:
+    <strong>${info.stock}</strong>
+    ${product.unit}
+
+    <br>
+
+    Minimum Stock:
+    ${info.minStock}
+
+    <br><br>
+
+    ${statusText}
+  `;
+
+}
+
+
+// ========================================
+// ANSWER AI
+// ========================================
+
 async function answerAIQuestion(
   question
 ) {
@@ -9438,19 +10083,106 @@ async function answerAIQuestion(
 
 
   // =====================================
-  // LOW STOCK
+  // INTENT DETECTION
+  // =====================================
+
+  const isToday =
+    q.includes("วันนี้") ||
+    q.includes("today");
+
+  const isLatest =
+    q.includes("ล่าสุด") ||
+    q.includes("รายการล่าสุด") ||
+    q.includes("recent") ||
+    q.includes("latest");
+
+  const isLowStock =
+    q.includes("ใกล้หมด") ||
+    q.includes("เหลือน้อย") ||
+    q.includes("low stock");
+
+  const isOutOfStock =
+    q.includes("หมดแล้ว") ||
+    q.includes("หมดเลย") ||
+    q.includes("หมด");
+
+  const isStockQuestion =
+    q.includes("เหลือ") ||
+    q.includes("คงเหลือ") ||
+    q.includes("สต็อก") ||
+    q.includes("stock") ||
+    q.includes("มีไหม") ||
+    q.includes("กี่") ||
+    q.includes("how much") ||
+    q.includes("how many");
+
+  const isOutMovement =
+    q.includes("stock out") ||
+    q.includes("stockout") ||
+    q.includes("out") ||
+    q.includes("ออก") ||
+    q.includes("เบิก");
+
+  const isInMovement =
+    q.includes("stock in") ||
+    q.includes("stockin") ||
+    q.includes("เข้า") ||
+    q.includes("รับเข้า");
+
+
+  // =====================================
+  // FIND PRODUCT FIRST
+  // =====================================
+
+  let product =
+    findAIProduct(q);
+
+
+  // =====================================
+  // FOLLOW-UP QUESTION
+  // =====================================
+
+  const isFollowUp =
+    q.includes("ตัวนี้") ||
+    q.includes("อันนี้") ||
+    q.includes("สินค้านี้") ||
+    q.includes("ตัวเดิม") ||
+    q.includes("อันเดิม") ||
+    q.includes("แล้วตัวนี้") ||
+    q.includes("แล้วอันนี้") ||
+    q === "แล้วล่ะ" ||
+    q === "แล้วล่ะ?" ||
+    q === "แล้วตัวนี้ล่ะ" ||
+    q === "แล้วอันนี้ล่ะ";
+
+
+  if (
+    !product &&
+    isFollowUp &&
+    aiConversationProduct
+  ) {
+
+    product =
+      aiConversationProduct;
+
+  }
+
+
+  // =====================================
+  // LOW / OUT STOCK LIST
   // =====================================
 
   if (
-    q.includes("ใกล้หมด") ||
-    q.includes("เหลือน้อย") ||
-    q.includes("low stock") ||
-    q.includes("หมดแล้ว") ||
-    q.includes("หมด")
+    isLowStock ||
+    (
+      isOutOfStock &&
+      !product
+    )
   ) {
 
     const items =
       getAILowStock();
+
 
     if (!items.length) {
 
@@ -9464,7 +10196,7 @@ async function answerAIQuestion(
 
     const out =
       items
-        .slice(0,10)
+        .slice(0, 15)
         .map(item => {
 
           const p =
@@ -9476,12 +10208,15 @@ async function answerAIQuestion(
               : "🟠";
 
           return `
-            ${icon} ${p.name_th}
+            ${icon}
+            <strong>${p.name_th}</strong>
             — ${item.stock} ${p.unit}
+            / Min ${item.minStock}
           `;
 
         })
         .join("<br>");
+
 
     return `
       <strong>Stock Alert</strong><br><br>
@@ -9492,104 +10227,174 @@ async function answerAIQuestion(
 
 
   // =====================================
-  // PRODUCT QUESTION
+  // TODAY MOVEMENTS
   // =====================================
 
-  let product =
-    findAIProduct(q);
+  if (isToday) {
+
+    const movements =
+      await getAIMovements();
+
+    const todayRows =
+      getAITodayMovements(
+        movements,
+        product
+      );
 
 
-  // Follow-up question
-  if (
-    !product &&
-    aiConversationProduct
-  ) {
+    // -----------------------------------
+    // PRODUCT + TODAY
+    // -----------------------------------
 
-    product =
-      aiConversationProduct;
+    if (product) {
 
-  }
+      aiConversationProduct =
+        product;
 
 
-  if (product) {
+      if (!todayRows.length) {
 
-    aiConversationProduct =
-      product;
+        return `
+          <strong>${product.name_th}</strong><br>
+          วันนี้ยังไม่มี Stock Movement ของสินค้านี้ครับ
+        `;
 
-
-    const info =
-      getAIStock(product);
-
-
-    const stockText =
-      info.stock <= 0
-        ? "🔴 OUT OF STOCK"
-        : info.stock <= info.minStock
-          ? "🟠 LOW STOCK"
-          : "🟢 NORMAL";
+      }
 
 
-    if (
-      q.includes("เหลือ") ||
-      q.includes("stock") ||
-      q.includes("กี่") ||
-      q.includes("มีไหม") ||
-      q.includes("how much") ||
-      q.includes("how many")
-    ) {
+      const inRows =
+        todayRows.filter(row =>
+          String(
+            row.movement_type
+          ).toUpperCase() === "IN"
+        );
+
+      const outRows =
+        todayRows.filter(row =>
+          String(
+            row.movement_type
+          ).toUpperCase() === "OUT"
+        );
+
+      const totalIn =
+        inRows.reduce(
+          (sum,row) =>
+            sum +
+            Number(
+              row.quantity || 0
+            ),
+          0
+        );
+
+      const totalOut =
+        outRows.reduce(
+          (sum,row) =>
+            sum +
+            Number(
+              row.quantity || 0
+            ),
+          0
+        );
+
 
       return `
         <strong>${product.name_th}</strong><br>
         ${product.name_en}<br><br>
 
-        📦 Current Stock:
-        <strong>
-          ${info.stock}
-        </strong>
+        📅 วันนี้
+
+        <br><br>
+
+        🟢 Stock In:
+        <strong>${totalIn}</strong>
         ${product.unit}
 
         <br>
 
-        Minimum Stock:
-        ${info.minStock}
+        🔴 Stock Out:
+        <strong>${totalOut}</strong>
+        ${product.unit}
 
         <br><br>
 
-        ${stockText}
+        Total Movement:
+        ${todayRows.length} รายการ
       `;
 
     }
 
-  }
 
+    // -----------------------------------
+    // TODAY OUT
+    // -----------------------------------
 
-  // =====================================
-  // TODAY MOVEMENTS
-  // =====================================
+    if (isOutMovement) {
 
-  if (
-    q.includes("วันนี้") ||
-    q.includes("today")
-  ) {
-
-    const movements =
-      await getAIMovements();
-
-
-    const today =
-      new Date()
-        .toLocaleDateString(
-          "en-CA"
+      const outRows =
+        todayRows.filter(row =>
+          String(
+            row.movement_type
+          ).toUpperCase() === "OUT"
         );
 
 
-    const todayRows =
-      movements.filter(row =>
-        String(
-          row.created_at
-        ).startsWith(today)
-      );
+      if (!outRows.length) {
 
+        return `
+          🔴 วันนี้ยังไม่มี Stock Out ครับ
+        `;
+
+      }
+
+
+      return `
+        <strong>Today's Stock Out</strong><br><br>
+        ${formatAIMovementList(
+          outRows,
+          15
+        )}
+      `;
+
+    }
+
+
+    // -----------------------------------
+    // TODAY IN
+    // -----------------------------------
+
+    if (isInMovement) {
+
+      const inRows =
+        todayRows.filter(row =>
+          String(
+            row.movement_type
+          ).toUpperCase() === "IN"
+        );
+
+
+      if (!inRows.length) {
+
+        return `
+          🟢 วันนี้ยังไม่มี Stock In ครับ
+        `;
+
+      }
+
+
+      return `
+        <strong>Today's Stock In</strong><br><br>
+        ${formatAIMovementList(
+          inRows,
+          15
+        )}
+      `;
+
+    }
+
+
+    // -----------------------------------
+    // TODAY SUMMARY
+    // -----------------------------------
 
     if (!todayRows.length) {
 
@@ -9602,34 +10407,34 @@ async function answerAIQuestion(
 
     const totalIn =
       todayRows
-        .filter(
-          row =>
-            String(
-              row.movement_type
-            ).toUpperCase()
-            === "IN"
+        .filter(row =>
+          String(
+            row.movement_type
+          ).toUpperCase() === "IN"
         )
         .reduce(
           (sum,row) =>
             sum +
-            Number(row.quantity || 0),
+            Number(
+              row.quantity || 0
+            ),
           0
         );
 
 
     const totalOut =
       todayRows
-        .filter(
-          row =>
-            String(
-              row.movement_type
-            ).toUpperCase()
-            === "OUT"
+        .filter(row =>
+          String(
+            row.movement_type
+          ).toUpperCase() === "OUT"
         )
         .reduce(
           (sum,row) =>
             sum +
-            Number(row.quantity || 0),
+            Number(
+              row.quantity || 0
+            ),
           0
         );
 
@@ -9648,22 +10453,17 @@ async function answerAIQuestion(
       <br><br>
 
       Total movements:
-      ${todayRows.length}
-      รายการ
+      ${todayRows.length} รายการ
     `;
 
   }
 
 
   // =====================================
-  // LATEST
+  // LATEST MOVEMENT
   // =====================================
 
-  if (
-    q.includes("ล่าสุด") ||
-    q.includes("recent") ||
-    q.includes("latest")
-  ) {
+  if (isLatest) {
 
     const movements =
       await getAIMovements();
@@ -9678,50 +10478,135 @@ async function answerAIQuestion(
     }
 
 
-    const rows =
-      movements
-        .slice(0,5)
-        .map(row => {
-
-          const type =
-            String(
-              row.movement_type
-            ).toUpperCase();
-
-          const icon =
-            type === "IN"
-              ? "🟢"
-              : "🔴";
-
-          return `
-            ${icon}
-            ${type}
-            ${row.quantity}
-          `;
-
-        })
-        .join("<br>");
-
-
     return `
       <strong>Latest Stock Movement</strong>
       <br><br>
-      ${rows}
+      ${formatAIMovementList(
+        movements,
+        10
+      )}
     `;
 
   }
 
 
+  // =====================================
+  // PRODUCT STOCK
+  // =====================================
+
+  if (
+    product &&
+    (
+      isStockQuestion ||
+      isLowStock ||
+      isOutOfStock
+    )
+  ) {
+
+    aiConversationProduct =
+      product;
+
+    return buildAIProductStockResponse(
+      product
+    );
+
+  }
+
+
+  // =====================================
+  // PRODUCT WITHOUT STOCK WORD
+  // =====================================
+
+  if (product) {
+
+    aiConversationProduct =
+      product;
+
+    return `
+      <strong>${product.name_th}</strong><br>
+      ${product.name_en}<br><br>
+
+      📦 Current Stock:
+      ${getAIStock(product).stock}
+      ${product.unit}
+
+      <br><br>
+
+      ถ้าต้องการดูจำนวนคงเหลือ
+      พิมพ์ว่า <strong>เหลือเท่าไหร่?</strong> ได้เลยครับ
+    `;
+
+  }
+
+
+  // =====================================
+  // GENERIC STOCK QUESTION
+  // =====================================
+
+  if (
+    isStockQuestion &&
+    !product
+  ) {
+
+    return `
+      ผมหาสินค้าที่ถามไม่เจอครับ 😅
+
+      <br><br>
+
+      ลองพิมพ์ชื่อสินค้า เช่น:
+      <br>
+      • ชาไทย
+      <br>
+      • อโรม่าแดง
+      <br>
+      • คาเนชั่น
+      <br>
+      • แก้ว PET 20oz
+      <br>
+      • ไซรัปคาราเมล
+    `;
+
+  }
+
+
+  // =====================================
+  // HELP
+  // =====================================
+
   return `
-    ผมยังไม่แน่ใจว่าคุณหมายถึงสินค้าอะไรครับ 😅
+    ผมช่วยดู Stock ให้ได้หลายอย่างเลยครับ 👋
+
     <br><br>
-    ลองถามแบบนี้ได้เลย:
+
+    <strong>📦 สต็อกสินค้า</strong>
     <br>
     • ชาไทยเหลือเท่าไหร่?
     <br>
+    • อโรม่าแดงเหลือเท่าไหร่?
+    <br>
+    • ITEM-02 เหลือเท่าไหร่?
+
+    <br><br>
+
+    <strong>⚠️ Stock Alert</strong>
+    <br>
     • อะไรใกล้หมด?
     <br>
-    • วันนี้มีของอะไรออกบ้าง?
+    • มีอะไรหมดแล้ว?
+
+    <br><br>
+
+    <strong>📅 วันนี้</strong>
+    <br>
+    • วันนี้ Stock In มีอะไรบ้าง?
+    <br>
+    • วันนี้ Stock Out มีอะไรบ้าง?
+    <br>
+    • ชาไทยวันนี้เข้าออกเท่าไหร่?
+
+    <br><br>
+
+    <strong>🕘 ล่าสุด</strong>
     <br>
     • รายการล่าสุดคืออะไร?
   `;
