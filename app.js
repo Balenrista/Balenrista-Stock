@@ -2981,6 +2981,967 @@ navDashboard.addEventListener(
 
 
 // ========================================
+// DASHBOARD PAGE
+// ========================================
+
+const dashboardPage =
+  document.createElement("section");
+
+dashboardPage.id = "dashboardPage";
+
+dashboardPage.style.display = "none";
+
+dashboardPage.innerHTML = `
+
+  <div class="section-header">
+
+    <div class="section-title">
+      Dashboard
+    </div>
+
+    <div
+      class="section-count"
+      id="dashboardDate"
+    >
+      Today
+    </div>
+
+  </div>
+
+
+  <div class="dashboard-grid">
+
+    <div class="dashboard-card">
+
+      <div class="dashboard-card-label">
+        Total Items
+      </div>
+
+      <div
+        class="dashboard-card-value"
+        id="dashboardTotalItems"
+      >
+        0
+      </div>
+
+      <div class="dashboard-card-sub">
+        Products
+      </div>
+
+    </div>
+
+
+    <div class="dashboard-card low">
+
+      <div class="dashboard-card-label">
+        Low Stock
+      </div>
+
+      <div
+        class="dashboard-card-value"
+        id="dashboardLowStock"
+      >
+        0
+      </div>
+
+      <div class="dashboard-card-sub">
+        Need attention
+      </div>
+
+    </div>
+
+
+    <div class="dashboard-card normal">
+
+      <div class="dashboard-card-label">
+        Normal Stock
+      </div>
+
+      <div
+        class="dashboard-card-value"
+        id="dashboardNormalStock"
+      >
+        0
+      </div>
+
+      <div class="dashboard-card-sub">
+        In safe level
+      </div>
+
+    </div>
+
+
+    <div class="dashboard-card">
+
+      <div class="dashboard-card-label">
+        Total Stock
+      </div>
+
+      <div
+        class="dashboard-card-value"
+        id="dashboardTotalStock"
+      >
+        0
+      </div>
+
+      <div class="dashboard-card-sub">
+        Current units
+      </div>
+
+    </div>
+
+
+    <div class="dashboard-card">
+
+      <div class="dashboard-card-label">
+        Stock In Today
+      </div>
+
+      <div
+        class="dashboard-card-value"
+        id="dashboardStockInToday"
+      >
+        0
+      </div>
+
+      <div class="dashboard-card-sub">
+        Received today
+      </div>
+
+    </div>
+
+
+    <div class="dashboard-card">
+
+      <div class="dashboard-card-label">
+        Stock Out Today
+      </div>
+
+      <div
+        class="dashboard-card-value"
+        id="dashboardStockOutToday"
+      >
+        0
+      </div>
+
+      <div class="dashboard-card-sub">
+        Used today
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div class="dashboard-section">
+
+    <div class="section-header">
+
+      <div class="section-title">
+        Inventory Overview
+      </div>
+
+    </div>
+
+
+    <div
+      class="dashboard-overview"
+      id="dashboardOverview"
+    >
+
+      <div class="dashboard-loading">
+        Loading...
+      </div>
+
+    </div>
+
+  </div>
+
+`;
+
+document
+  .querySelector(".app")
+  .appendChild(dashboardPage);
+
+
+// ========================================
+// DASHBOARD STYLE
+// ========================================
+
+const dashboardStyle =
+  document.createElement("style");
+
+dashboardStyle.textContent = `
+
+  .dashboard-grid {
+
+    display: grid;
+
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 10px;
+
+    margin-bottom: 28px;
+
+  }
+
+
+  .dashboard-card {
+
+    min-height: 135px;
+
+    padding: 18px;
+
+    background:
+      rgba(82,66,61,.28);
+
+    border:
+      1px solid
+      rgba(192,186,179,.14);
+
+    border-radius: 22px;
+
+    box-shadow:
+      0 12px 30px
+      rgba(0,0,0,.16);
+
+  }
+
+
+  .dashboard-card.low {
+
+    background:
+      rgba(57,18,20,.32);
+
+  }
+
+
+  .dashboard-card.normal {
+
+    background:
+      rgba(82,66,61,.28);
+
+  }
+
+
+  .dashboard-card-label {
+
+    color:
+      var(--moon-rock);
+
+    font-size: 8px;
+
+    letter-spacing: .08em;
+
+    text-transform: uppercase;
+
+    margin-bottom: 14px;
+
+  }
+
+
+  .dashboard-card-value {
+
+    color:
+      var(--soft-dove);
+
+    font-size: 30px;
+
+    font-weight: 700;
+
+    line-height: 1;
+
+  }
+
+
+  .dashboard-card.low
+  .dashboard-card-value {
+
+    color: #C77A7A;
+
+  }
+
+
+  .dashboard-card.normal
+  .dashboard-card-value {
+
+    color: #9FA99D;
+
+  }
+
+
+  .dashboard-card-sub {
+
+    margin-top: 10px;
+
+    color:
+      var(--moon-rock);
+
+    font-size: 8px;
+
+  }
+
+
+  .dashboard-section {
+
+    margin-top: 8px;
+
+  }
+
+
+  .dashboard-overview {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+  }
+
+
+  .dashboard-overview-item {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 12px;
+
+    padding: 15px;
+
+    background:
+      rgba(82,66,61,.24);
+
+    border:
+      1px solid
+      rgba(192,186,179,.13);
+
+    border-radius: 18px;
+
+  }
+
+
+  .dashboard-overview-main {
+
+    min-width: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+  }
+
+
+  .dashboard-overview-number {
+
+    width: 36px;
+    height: 36px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    color:
+      var(--soft-dove);
+
+    background:
+      rgba(22,15,12,.45);
+
+    border:
+      1px solid
+      rgba(192,186,179,.1);
+
+    border-radius: 11px;
+
+    font-size: 9px;
+
+  }
+
+
+  .dashboard-overview-info {
+
+    min-width: 0;
+
+  }
+
+
+  .dashboard-overview-name {
+
+    overflow: hidden;
+
+    color:
+      var(--soft-dove);
+
+    font-size: 10px;
+
+    white-space: nowrap;
+
+    text-overflow: ellipsis;
+
+  }
+
+
+  .dashboard-overview-th {
+
+    margin-top: 3px;
+
+    overflow: hidden;
+
+    color:
+      var(--moon-rock);
+
+    font-family:
+      "Noto Sans Thai",
+      sans-serif;
+
+    font-size: 8px;
+
+    white-space: nowrap;
+
+    text-overflow: ellipsis;
+
+  }
+
+
+  .dashboard-overview-stock {
+
+    flex-shrink: 0;
+
+    text-align: right;
+
+  }
+
+
+  .dashboard-overview-current {
+
+    color:
+      var(--soft-dove);
+
+    font-size: 15px;
+
+    font-weight: 700;
+
+  }
+
+
+  .dashboard-overview-current.low {
+
+    color:
+      #C77A7A;
+
+  }
+
+
+  .dashboard-overview-min {
+
+    margin-top: 2px;
+
+    color:
+      var(--moon-rock);
+
+    font-size: 8px;
+
+  }
+
+
+  .dashboard-loading {
+
+    padding: 30px;
+
+    color:
+      var(--moon-rock);
+
+    text-align: center;
+
+    font-size: 10px;
+
+  }
+
+
+  @media (min-width: 700px) {
+
+    .dashboard-grid {
+
+      grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    }
+
+  }
+
+
+  @media (max-width: 390px) {
+
+    .dashboard-card {
+
+      min-height: 125px;
+
+      padding: 15px;
+
+    }
+
+
+    .dashboard-card-value {
+
+      font-size: 26px;
+
+    }
+
+  }
+
+`;
+
+document.head.appendChild(
+  dashboardStyle
+);
+
+
+// ========================================
+// DASHBOARD ELEMENTS
+// ========================================
+
+const dashboardDate =
+  document.getElementById(
+    "dashboardDate"
+  );
+
+const dashboardTotalItems =
+  document.getElementById(
+    "dashboardTotalItems"
+  );
+
+const dashboardLowStock =
+  document.getElementById(
+    "dashboardLowStock"
+  );
+
+const dashboardNormalStock =
+  document.getElementById(
+    "dashboardNormalStock"
+  );
+
+const dashboardTotalStock =
+  document.getElementById(
+    "dashboardTotalStock"
+  );
+
+const dashboardStockInToday =
+  document.getElementById(
+    "dashboardStockInToday"
+  );
+
+const dashboardStockOutToday =
+  document.getElementById(
+    "dashboardStockOutToday"
+  );
+
+const dashboardOverview =
+  document.getElementById(
+    "dashboardOverview"
+  );
+
+
+// ========================================
+// LOAD DASHBOARD
+// ========================================
+
+async function loadDashboard() {
+
+  dashboardTotalItems.textContent =
+    allProducts.length;
+
+
+  let lowItems = 0;
+  let normalItems = 0;
+  let totalStock = 0;
+
+
+  allProducts.forEach(
+    product => {
+
+      const stock =
+        stockMap[product.id];
+
+
+      const currentStock =
+        stock
+          ? Number(
+              stock.current_stock
+            )
+          : 0;
+
+
+      const minStock =
+        stock
+          ? Number(
+              stock.min_stock
+            )
+          : Number(
+              product.min_stock || 5
+            );
+
+
+      totalStock +=
+        currentStock;
+
+
+      if (
+        currentStock <=
+        minStock
+      ) {
+
+        lowItems++;
+
+      } else {
+
+        normalItems++;
+
+      }
+
+    }
+  );
+
+
+  dashboardLowStock.textContent =
+    lowItems;
+
+
+  dashboardNormalStock.textContent =
+    normalItems;
+
+
+  dashboardTotalStock.textContent =
+    formatNumber(
+      totalStock
+    );
+
+
+  // ======================================
+  // TODAY
+  // ======================================
+
+  const today =
+    new Date();
+
+
+  const startOfDay =
+    new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+
+
+  const startISO =
+    startOfDay.toISOString();
+
+
+  const endISO =
+    new Date(
+      startOfDay.getTime() +
+      24 * 60 * 60 * 1000
+    ).toISOString();
+
+
+  const movementResult =
+    await supabaseClient
+      .from("stock_movements")
+      .select(
+        "movement_type, quantity, created_at"
+      )
+      .gte(
+        "created_at",
+        startISO
+      )
+      .lt(
+        "created_at",
+        endISO
+      );
+
+
+  if (
+    movementResult.error
+  ) {
+
+    console.error(
+      "Dashboard movement error:",
+      movementResult.error
+    );
+
+    dashboardStockInToday.textContent =
+      "—";
+
+    dashboardStockOutToday.textContent =
+      "—";
+
+  } else {
+
+    let stockInToday = 0;
+    let stockOutToday = 0;
+
+
+    (
+      movementResult.data ||
+      []
+    ).forEach(
+      movement => {
+
+        const quantity =
+          Number(
+            movement.quantity
+          ) || 0;
+
+
+        if (
+          movement.movement_type ===
+          "IN"
+        ) {
+
+          stockInToday +=
+            quantity;
+
+        }
+
+
+        if (
+          movement.movement_type ===
+          "OUT"
+        ) {
+
+          stockOutToday +=
+            quantity;
+
+        }
+
+      }
+    );
+
+
+    dashboardStockInToday.textContent =
+      formatNumber(
+        stockInToday
+      );
+
+
+    dashboardStockOutToday.textContent =
+      formatNumber(
+        stockOutToday
+      );
+
+  }
+
+
+  // ======================================
+  // DATE
+  // ======================================
+
+  dashboardDate.textContent =
+    today.toLocaleDateString(
+      "en-GB",
+      {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      }
+    );
+
+
+  // ======================================
+  // INVENTORY OVERVIEW
+  // ======================================
+
+  dashboardOverview.innerHTML =
+    allProducts
+      .map(product => {
+
+        const stock =
+          stockMap[product.id];
+
+
+        const currentStock =
+          stock
+            ? Number(
+                stock.current_stock
+              )
+            : 0;
+
+
+        const minStock =
+          stock
+            ? Number(
+                stock.min_stock
+              )
+            : Number(
+                product.min_stock || 5
+              );
+
+
+        const isLow =
+          currentStock <=
+          minStock;
+
+
+        return `
+
+          <div
+            class="dashboard-overview-item"
+          >
+
+            <div
+              class="dashboard-overview-main"
+            >
+
+              <div
+                class="dashboard-overview-number"
+              >
+                ${String(
+                  product.item_no
+                ).padStart(2, "0")}
+              </div>
+
+
+              <div
+                class="dashboard-overview-info"
+              >
+
+                <div
+                  class="dashboard-overview-name"
+                >
+                  ${escapeHtml(
+                    product.name_en || ""
+                  )}
+                </div>
+
+
+                <div
+                  class="dashboard-overview-th"
+                >
+                  ${escapeHtml(
+                    product.name_th || ""
+                  )}
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div
+              class="dashboard-overview-stock"
+            >
+
+              <div
+                class="
+                  dashboard-overview-current
+                  ${isLow ? "low" : ""}
+                "
+              >
+                ${formatNumber(
+                  currentStock
+                )}
+              </div>
+
+
+              <div
+                class="dashboard-overview-min"
+              >
+                MIN ${
+                  formatNumber(
+                    minStock
+                  )
+                }
+              </div>
+
+            </div>
+
+          </div>
+
+        `;
+
+      })
+      .join("");
+
+}
+
+
+// ========================================
+// PAGE NAVIGATION
+// ========================================
+
+function showDashboardPage() {
+
+  homeElements.forEach(
+    element => {
+
+      if (element) {
+
+        element.style.display =
+          "none";
+
+      }
+
+    }
+  );
+
+
+  stockPage.style.display =
+    "none";
+
+
+  dashboardPage.style.display =
+    "block";
+
+
+  loadDashboard();
+
+
+  setActiveNav(
+    navDashboard
+  );
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+}
+
+
+navDashboard.onclick =
+  showDashboardPage;
+
+
+// ========================================
+// REFRESH DASHBOARD
+// ========================================
+
+async function refreshDashboard() {
+
+  await refreshStock();
+
+  if (
+    dashboardPage.style.display !==
+    "none"
+  ) {
+
+    await loadDashboard();
+
+  }
+
+}
+
+
+// ========================================
 // START
 // ========================================
 
