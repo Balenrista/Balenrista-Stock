@@ -24,6 +24,13 @@ let searchKeyword = "";
 let selectedProduct = null;
 let selectedMovementType = null;
 
+// Calendar
+let calendarDate = new Date();
+calendarDate.setDate(1);
+
+let calendarMovements = [];
+let selectedCalendarDate = null;
+
 
 // ========================================
 // ELEMENTS
@@ -41,21 +48,14 @@ const searchInput =
 const categoryRow =
   document.getElementById("categoryRow");
 
-
 const stockAlertSection =
-  document.getElementById(
-    "stockAlertSection"
-  );
+  document.getElementById("stockAlertSection");
 
 const stockAlertList =
-  document.getElementById(
-    "stockAlertList"
-  );
+  document.getElementById("stockAlertList");
 
 const stockAlertCount =
-  document.getElementById(
-    "stockAlertCount"
-  );
+  document.getElementById("stockAlertCount");
 
 
 // ========================================
@@ -67,538 +67,285 @@ const modalStyle =
 
 modalStyle.textContent = `
 
+.stock-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 14px;
+  background: rgba(0,0,0,.62);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.stock-modal-overlay.show {
+  display: flex;
+}
+
+.stock-modal {
+  width: min(100%,560px);
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: 22px;
+  color: var(--soft-dove);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(82,66,61,.92),
+      rgba(22,15,12,.96)
+    );
+  border: 1px solid rgba(192,186,179,.18);
+  border-radius: 30px;
+  box-shadow:
+    0 30px 90px rgba(0,0,0,.55),
+    inset 0 1px 0 rgba(255,255,255,.05);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  animation: modalUp .25s ease;
+}
+
+@keyframes modalUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 18px;
+}
+
+.modal-close {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--soft-dove);
+  background: rgba(192,186,179,.07);
+  border: 1px solid rgba(192,186,179,.14);
+  border-radius: 50%;
+}
+
+.modal-close svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+}
+
+.detail-image {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  max-height: 420px;
+  overflow: hidden;
+  margin-bottom: 18px;
+  background: rgba(22,15,12,.5);
+  border-radius: 22px;
+  border: 1px solid rgba(192,186,179,.12);
+}
+
+.detail-image img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.detail-number {
+  color: var(--moon-rock);
+  font-size: 10px;
+  letter-spacing: .16em;
+  margin-bottom: 6px;
+}
+
+.detail-name-en {
+  color: var(--soft-dove);
+  font-size: 21px;
+  line-height: 1.35;
+  margin-bottom: 5px;
+}
+
+.detail-name-th {
+  color: var(--moon-rock);
+  font-family: "Noto Sans Thai",sans-serif;
+  font-size: 13px;
+  margin-bottom: 22px;
+}
+
+.stock-panel {
+  padding: 18px;
+  margin-bottom: 16px;
+  background: rgba(22,15,12,.38);
+  border: 1px solid rgba(192,186,179,.12);
+  border-radius: 20px;
+}
+
+.stock-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.stock-label {
+  color: var(--moon-rock);
+  font-size: 9px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.stock-value {
+  color: var(--soft-dove);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.stock-min {
+  color: var(--moon-rock);
+  font-size: 10px;
+}
+
+.stock-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 11px;
+  color: var(--soft-dove);
+  background: rgba(192,186,179,.07);
+  border: 1px solid rgba(192,186,179,.12);
+  border-radius: 999px;
+  font-size: 9px;
+}
+
+.stock-badge.low {
+  background: rgba(57,18,20,.7);
+}
+
+.stock-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--moon-rock);
+}
+
+.stock-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.stock-action {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  color: var(--soft-dove);
+  border-radius: 18px;
+  border: 1px solid rgba(192,186,179,.14);
+  font-size: 11px;
+  transition: transform .2s ease,background .2s ease;
+}
+
+.stock-action:hover {
+  transform: translateY(-2px);
+}
+
+.stock-action.in {
+  background: rgba(82,66,61,.6);
+}
+
+.stock-action.out {
+  background: rgba(57,18,20,.65);
+}
+
+.stock-action svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+}
+
+.movement-form {
+  display: none;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(192,186,179,.1);
+}
+
+.movement-form.show {
+  display: block;
+}
+
+.movement-title {
+  color: var(--soft-dove);
+  font-size: 15px;
+  margin-bottom: 14px;
+}
+
+.form-label {
+  display: block;
+  color: var(--moon-rock);
+  font-size: 9px;
+  letter-spacing: .1em;
+  margin-bottom: 7px;
+}
+
+.form-input {
+  width: 100%;
+  height: 50px;
+  padding: 0 14px;
+  margin-bottom: 14px;
+  color: var(--soft-dove);
+  background: rgba(22,15,12,.55);
+  border: 1px solid rgba(192,186,179,.14);
+  border-radius: 15px;
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: rgba(192,186,179,.35);
+}
+
+.form-submit {
+  width: 100%;
+  height: 52px;
+  color: var(--soft-dove);
+  background: rgba(57,18,20,.9);
+  border: 1px solid rgba(192,186,179,.18);
+  border-radius: 16px;
+  font-size: 11px;
+}
+
+.form-message {
+  min-height: 18px;
+  margin-top: 10px;
+  text-align: center;
+  color: var(--moon-rock);
+  font-size: 10px;
+}
+
+@media (min-width:700px) {
   .stock-modal-overlay {
-
-    position: fixed;
-    inset: 0;
-
-    z-index: 999;
-
-    display: none;
-
-    align-items: flex-end;
-    justify-content: center;
-
-    padding: 14px;
-
-    background:
-      rgba(0, 0, 0, 0.62);
-
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-
-  }
-
-
-  .stock-modal-overlay.show {
-
-    display: flex;
-
-  }
-
-
-  .stock-modal {
-
-    width: min(100%, 560px);
-
-    max-height: 92vh;
-
-    overflow-y: auto;
-
-    padding: 22px;
-
-    color: var(--soft-dove);
-
-    background:
-      linear-gradient(
-        145deg,
-        rgba(82,66,61,.92),
-        rgba(22,15,12,.96)
-      );
-
-    border:
-      1px solid
-      rgba(192,186,179,.18);
-
-    border-radius: 30px;
-
-    box-shadow:
-      0 30px 90px rgba(0,0,0,.55),
-      inset 0 1px 0
-      rgba(255,255,255,.05);
-
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
-
-    animation:
-      modalUp .25s ease;
-
-  }
-
-
-  @keyframes modalUp {
-
-    from {
-      transform: translateY(30px);
-      opacity: 0;
-    }
-
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
-
-  }
-
-
-  .modal-top {
-
-    display: flex;
-
     align-items: center;
-    justify-content: space-between;
-
-    gap: 15px;
-
-    margin-bottom: 18px;
-
   }
-
-
-  .modal-close {
-
-    width: 40px;
-    height: 40px;
-
-    flex-shrink: 0;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    color: var(--soft-dove);
-
-    background:
-      rgba(192,186,179,.07);
-
-    border:
-      1px solid
-      rgba(192,186,179,.14);
-
-    border-radius: 50%;
-
-  }
-
-
-  .modal-close svg {
-
-    width: 18px;
-    height: 18px;
-
-    stroke: currentColor;
-
-  }
-
-
-  .detail-image {
-
-    width: 100%;
-
-    aspect-ratio: 4 / 5;
-
-    max-height: 420px;
-
-    overflow: hidden;
-
-    margin-bottom: 18px;
-
-    background:
-      rgba(22,15,12,.5);
-
-    border-radius: 22px;
-
-    border:
-      1px solid
-      rgba(192,186,179,.12);
-
-  }
-
-
-  .detail-image img {
-
-    width: 100%;
-    height: 100%;
-
-    display: block;
-
-    object-fit: cover;
-
-  }
-
-
-  .detail-number {
-
-    color: var(--moon-rock);
-
-    font-size: 10px;
-
-    letter-spacing: .16em;
-
-    margin-bottom: 6px;
-
-  }
-
-
-  .detail-name-en {
-
-    color: var(--soft-dove);
-
-    font-size: 21px;
-
-    line-height: 1.35;
-
-    margin-bottom: 5px;
-
-  }
-
-
-  .detail-name-th {
-
-    color: var(--moon-rock);
-
-    font-family:
-      "Noto Sans Thai",
-      sans-serif;
-
-    font-size: 13px;
-
-    margin-bottom: 22px;
-
-  }
-
-
-  .stock-panel {
-
-    padding: 18px;
-
-    margin-bottom: 16px;
-
-    background:
-      rgba(22,15,12,.38);
-
-    border:
-      1px solid
-      rgba(192,186,179,.12);
-
-    border-radius: 20px;
-
-  }
-
-
-  .stock-panel-head {
-
-    display: flex;
-
-    justify-content: space-between;
-    align-items: center;
-
-    margin-bottom: 12px;
-
-  }
-
-
-  .stock-label {
-
-    color: var(--moon-rock);
-
-    font-size: 9px;
-
-    letter-spacing: .16em;
-
-    text-transform: uppercase;
-
-  }
-
-
-  .stock-value {
-
-    color: var(--soft-dove);
-
-    font-size: 32px;
-
-    font-weight: 700;
-
-    line-height: 1;
-
-    margin-bottom: 8px;
-
-  }
-
-
-  .stock-min {
-
-    color: var(--moon-rock);
-
-    font-size: 10px;
-
-  }
-
-
-  .stock-badge {
-
-    display: inline-flex;
-
-    align-items: center;
-
-    gap: 7px;
-
-    padding: 7px 11px;
-
-    color: var(--soft-dove);
-
-    background:
-      rgba(192,186,179,.07);
-
-    border:
-      1px solid
-      rgba(192,186,179,.12);
-
-    border-radius: 999px;
-
-    font-size: 9px;
-
-  }
-
-
-  .stock-badge.low {
-
-    background:
-      rgba(57,18,20,.7);
-
-  }
-
-
-  .stock-badge-dot {
-
-    width: 6px;
-    height: 6px;
-
-    border-radius: 50%;
-
-    background:
-      var(--moon-rock);
-
-  }
-
-
-  .stock-actions {
-
-    display: grid;
-
-    grid-template-columns:
-      1fr 1fr;
-
-    gap: 10px;
-
-  }
-
-
-  .stock-action {
-
-    min-height: 58px;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    gap: 9px;
-
-    color: var(--soft-dove);
-
-    border-radius: 18px;
-
-    border:
-      1px solid
-      rgba(192,186,179,.14);
-
-    font-size: 11px;
-
-    transition:
-      transform .2s ease,
-      background .2s ease;
-
-  }
-
-
-  .stock-action:hover {
-
-    transform: translateY(-2px);
-
-  }
-
-
-  .stock-action.in {
-
-    background:
-      rgba(82,66,61,.6);
-
-  }
-
-
-  .stock-action.out {
-
-    background:
-      rgba(57,18,20,.65);
-
-  }
-
-
-  .stock-action svg {
-
-    width: 18px;
-    height: 18px;
-
-    stroke: currentColor;
-
-  }
-
-
-  .movement-form {
-
-    display: none;
-
-    margin-top: 16px;
-
-    padding-top: 16px;
-
-    border-top:
-      1px solid
-      rgba(192,186,179,.1);
-
-  }
-
-
-  .movement-form.show {
-
-    display: block;
-
-  }
-
-
-  .movement-title {
-
-    color: var(--soft-dove);
-
-    font-size: 15px;
-
-    margin-bottom: 14px;
-
-  }
-
-
-  .form-label {
-
-    display: block;
-
-    color: var(--moon-rock);
-
-    font-size: 9px;
-
-    letter-spacing: .1em;
-
-    margin-bottom: 7px;
-
-  }
-
-
-  .form-input {
-
-    width: 100%;
-
-    height: 50px;
-
-    padding: 0 14px;
-
-    margin-bottom: 14px;
-
-    color: var(--soft-dove);
-
-    background:
-      rgba(22,15,12,.55);
-
-    border:
-      1px solid
-      rgba(192,186,179,.14);
-
-    border-radius: 15px;
-
-    outline: none;
-
-  }
-
-
-  .form-input:focus {
-
-    border-color:
-      rgba(192,186,179,.35);
-
-  }
-
-
-  .form-submit {
-
-    width: 100%;
-
-    height: 52px;
-
-    color: var(--soft-dove);
-
-    background:
-      rgba(57,18,20,.9);
-
-    border:
-      1px solid
-      rgba(192,186,179,.18);
-
-    border-radius: 16px;
-
-    font-size: 11px;
-
-  }
-
-
-  .form-message {
-
-    min-height: 18px;
-
-    margin-top: 10px;
-
-    text-align: center;
-
-    color: var(--moon-rock);
-
-    font-size: 10px;
-
-  }
-
-
-  @media (min-width: 700px) {
-
-    .stock-modal-overlay {
-
-      align-items: center;
-
-    }
-
-  }
+}
 
 `;
 
-document.head.appendChild(
-  modalStyle
-);
+document.head.appendChild(modalStyle);
 
 
 // ========================================
@@ -613,211 +360,192 @@ modal.className =
 
 modal.innerHTML = `
 
-  <div
-    class="stock-modal"
-    id="stockModal"
-  >
+<div class="stock-modal" id="stockModal">
 
-    <div class="modal-top">
-
-      <div
-        class="detail-number"
-        id="detailNumber"
-      >
-        ITEM 00
-      </div>
-
-
-      <button
-        class="modal-close"
-        id="modalClose"
-        aria-label="Close"
-      >
-
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.7"
-          stroke-linecap="round"
-        >
-          <path d="M6 6l12 12"></path>
-          <path d="M18 6L6 18"></path>
-        </svg>
-
-      </button>
-
-    </div>
-
-
-    <div class="detail-image">
-
-      <img
-        id="detailImage"
-        src=""
-        alt=""
-      />
-
-    </div>
-
+  <div class="modal-top">
 
     <div
-      class="detail-name-en"
-      id="detailNameEn"
-    ></div>
-
-
-    <div
-      class="detail-name-th"
-      id="detailNameTh"
-    ></div>
-
-
-    <div class="stock-panel">
-
-      <div class="stock-panel-head">
-
-        <div class="stock-label">
-          Current Stock
-        </div>
-
-        <div
-          class="stock-badge"
-          id="stockBadge"
-        >
-
-          <span
-            class="stock-badge-dot"
-          ></span>
-
-          <span id="stockBadgeText">
-            NORMAL
-          </span>
-
-        </div>
-
-      </div>
-
-
-      <div
-        class="stock-value"
-        id="detailStock"
-      >
-        0
-      </div>
-
-
-      <div
-        class="stock-min"
-        id="detailMin"
-      >
-        Minimum Stock: 5
-      </div>
-
+      class="detail-number"
+      id="detailNumber"
+    >
+      ITEM 00
     </div>
 
-
-    <div class="stock-actions">
-
-      <button
-        class="stock-action in"
-        id="stockInButton"
-      >
-
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.7"
-          stroke-linecap="round"
-        >
-          <path d="M12 5v14"></path>
-          <path d="M5 12h14"></path>
-        </svg>
-
-        Stock In
-
-      </button>
-
-
-      <button
-        class="stock-action out"
-        id="stockOutButton"
-      >
-
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.7"
-          stroke-linecap="round"
-        >
-          <path d="M5 12h14"></path>
-        </svg>
-
-        Stock Out
-
-      </button>
-
-    </div>
-
-
-    <div
-      class="movement-form"
-      id="movementForm"
+    <button
+      class="modal-close"
+      id="modalClose"
+      aria-label="Close"
     >
 
-      <div
-        class="movement-title"
-        id="movementTitle"
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.7"
+        stroke-linecap="round"
       >
-        Stock In
+        <path d="M6 6l12 12"></path>
+        <path d="M18 6L6 18"></path>
+      </svg>
+
+    </button>
+
+  </div>
+
+  <div class="detail-image">
+
+    <img
+      id="detailImage"
+      src=""
+      alt=""
+    />
+
+  </div>
+
+  <div
+    class="detail-name-en"
+    id="detailNameEn"
+  ></div>
+
+  <div
+    class="detail-name-th"
+    id="detailNameTh"
+  ></div>
+
+  <div class="stock-panel">
+
+    <div class="stock-panel-head">
+
+      <div class="stock-label">
+        Current Stock
       </div>
 
-
-      <label class="form-label">
-        Quantity
-      </label>
-
-      <input
-        class="form-input"
-        id="movementQuantity"
-        type="number"
-        min="0.01"
-        step="any"
-        placeholder="Enter quantity"
-      />
-
-
-      <label class="form-label">
-        Note
-      </label>
-
-      <input
-        class="form-input"
-        id="movementNote"
-        type="text"
-        maxlength="200"
-        placeholder="Optional note"
-      />
-
-
-      <button
-        class="form-submit"
-        id="movementSubmit"
-      >
-        Confirm
-      </button>
-
-
       <div
-        class="form-message"
-        id="formMessage"
-      ></div>
+        class="stock-badge"
+        id="stockBadge"
+      >
 
+        <span class="stock-badge-dot"></span>
+
+        <span id="stockBadgeText">
+          NORMAL
+        </span>
+
+      </div>
+
+    </div>
+
+    <div
+      class="stock-value"
+      id="detailStock"
+    >
+      0
+    </div>
+
+    <div
+      class="stock-min"
+      id="detailMin"
+    >
+      Minimum Stock: 5
     </div>
 
   </div>
+
+  <div class="stock-actions">
+
+    <button
+      class="stock-action in"
+      id="stockInButton"
+    >
+
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.7"
+        stroke-linecap="round"
+      >
+        <path d="M12 5v14"></path>
+        <path d="M5 12h14"></path>
+      </svg>
+
+      Stock In
+
+    </button>
+
+    <button
+      class="stock-action out"
+      id="stockOutButton"
+    >
+
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.7"
+        stroke-linecap="round"
+      >
+        <path d="M5 12h14"></path>
+      </svg>
+
+      Stock Out
+
+    </button>
+
+  </div>
+
+  <div
+    class="movement-form"
+    id="movementForm"
+  >
+
+    <div
+      class="movement-title"
+      id="movementTitle"
+    >
+      Stock In
+    </div>
+
+    <label class="form-label">
+      Quantity
+    </label>
+
+    <input
+      class="form-input"
+      id="movementQuantity"
+      type="number"
+      min="0.01"
+      step="any"
+      placeholder="Enter quantity"
+    />
+
+    <label class="form-label">
+      Note
+    </label>
+
+    <input
+      class="form-input"
+      id="movementNote"
+      type="text"
+      maxlength="200"
+      placeholder="Optional note"
+    />
+
+    <button
+      class="form-submit"
+      id="movementSubmit"
+    >
+      Confirm
+    </button>
+
+    <div
+      class="form-message"
+      id="formMessage"
+    ></div>
+
+  </div>
+
+</div>
 
 `;
 
@@ -928,394 +656,200 @@ const alertStyle =
 
 alertStyle.textContent = `
 
-  .floating-stock-alert {
+.floating-stock-alert {
+  position: fixed;
+  right: 18px;
+  bottom: 92px;
+  z-index: 900;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 14px;
+  color: var(--soft-dove);
+  background: rgba(57,18,20,.94);
+  border: 1px solid rgba(192,186,179,.2);
+  border-radius: 999px;
+  box-shadow: 0 12px 35px rgba(0,0,0,.35);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  font-size: 9px;
+  letter-spacing: .05em;
+}
 
-    position: fixed;
+.floating-stock-alert.show {
+  display: flex;
+}
 
-    right: 18px;
+.floating-stock-alert svg {
+  width: 17px;
+  height: 17px;
+  stroke: currentColor;
+}
 
-    bottom: 92px;
+.floating-stock-alert-count {
+  min-width: 19px;
+  height: 19px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  color: var(--soft-dove);
+  background: rgba(192,186,179,.16);
+  border-radius: 999px;
+  font-size: 8px;
+}
 
-    z-index: 900;
+.alert-panel-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 998;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 14px;
+  background: rgba(0,0,0,.62);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
 
-    display: none;
+.alert-panel-overlay.show {
+  display: flex;
+}
 
-    align-items: center;
+.alert-panel {
+  width: min(100%,560px);
+  max-height: 78vh;
+  overflow-y: auto;
+  padding: 20px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(82,66,61,.96),
+      rgba(22,15,12,.98)
+    );
+  border: 1px solid rgba(192,186,179,.18);
+  border-radius: 28px;
+  box-shadow: 0 30px 80px rgba(0,0,0,.55);
+  animation: alertUp .22s ease;
+}
 
-    gap: 8px;
-
-    height: 42px;
-
-    padding: 0 14px;
-
-    color:
-      var(--soft-dove);
-
-    background:
-      rgba(57,18,20,.94);
-
-    border:
-      1px solid
-      rgba(192,186,179,.2);
-
-    border-radius: 999px;
-
-    box-shadow:
-      0 12px 35px
-      rgba(0,0,0,.35);
-
-    backdrop-filter:
-      blur(16px);
-
-    -webkit-backdrop-filter:
-      blur(16px);
-
-    font-size: 9px;
-
-    letter-spacing: .05em;
-
+@keyframes alertUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
   }
-
-
-  .floating-stock-alert.show {
-
-    display: flex;
-
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
+}
 
+.alert-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
 
-  .floating-stock-alert svg {
+.alert-panel-title {
+  color: var(--soft-dove);
+  font-size: 16px;
+  font-weight: 700;
+}
 
-    width: 17px;
-    height: 17px;
+.alert-panel-count {
+  color: var(--moon-rock);
+  font-size: 9px;
+}
 
-    stroke:
-      currentColor;
+.alert-panel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
 
-  }
+.alert-panel-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px;
+  color: var(--soft-dove);
+  background: rgba(22,15,12,.38);
+  border: 1px solid rgba(192,186,179,.11);
+  border-radius: 17px;
+  text-align: left;
+}
 
+.alert-panel-item-main {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-  .floating-stock-alert-count {
+.alert-panel-number {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(57,18,20,.65);
+  border-radius: 10px;
+  font-size: 9px;
+}
 
-    min-width: 19px;
-    height: 19px;
+.alert-panel-info {
+  min-width: 0;
+}
 
-    display: flex;
+.alert-panel-name {
+  overflow: hidden;
+  color: var(--soft-dove);
+  font-size: 10px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
 
-    align-items: center;
-    justify-content: center;
+.alert-panel-th {
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--moon-rock);
+  font-family: "Noto Sans Thai",sans-serif;
+  font-size: 8px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
 
-    padding: 0 5px;
+.alert-panel-stock {
+  flex-shrink: 0;
+  text-align: right;
+}
 
-    color:
-      var(--soft-dove);
+.alert-panel-current {
+  color: #C77A7A;
+  font-size: 15px;
+  font-weight: 700;
+}
 
-    background:
-      rgba(192,186,179,.16);
+.alert-panel-min {
+  margin-top: 2px;
+  color: var(--moon-rock);
+  font-size: 8px;
+}
 
-    border-radius: 999px;
-
-    font-size: 8px;
-
-  }
-
-
+@media (min-width:700px) {
   .alert-panel-overlay {
-
-    position: fixed;
-
-    inset: 0;
-
-    z-index: 998;
-
-    display: none;
-
-    align-items: flex-end;
-
-    justify-content: center;
-
-    padding: 14px;
-
-    background:
-      rgba(0,0,0,.62);
-
-    backdrop-filter:
-      blur(12px);
-
-    -webkit-backdrop-filter:
-      blur(12px);
-
-  }
-
-
-  .alert-panel-overlay.show {
-
-    display: flex;
-
-  }
-
-
-  .alert-panel {
-
-    width: min(100%, 560px);
-
-    max-height: 78vh;
-
-    overflow-y: auto;
-
-    padding: 20px;
-
-    background:
-      linear-gradient(
-        145deg,
-        rgba(82,66,61,.96),
-        rgba(22,15,12,.98)
-      );
-
-    border:
-      1px solid
-      rgba(192,186,179,.18);
-
-    border-radius: 28px;
-
-    box-shadow:
-      0 30px 80px
-      rgba(0,0,0,.55);
-
-    animation:
-      alertUp .22s ease;
-
-  }
-
-
-  @keyframes alertUp {
-
-    from {
-
-      transform:
-        translateY(30px);
-
-      opacity: 0;
-
-    }
-
-    to {
-
-      transform:
-        translateY(0);
-
-      opacity: 1;
-
-    }
-
-  }
-
-
-  .alert-panel-header {
-
-    display: flex;
-
     align-items: center;
-
-    justify-content: space-between;
-
-    margin-bottom: 16px;
-
   }
-
-
-  .alert-panel-title {
-
-    color:
-      var(--soft-dove);
-
-    font-size: 16px;
-
-    font-weight: 700;
-
-  }
-
-
-  .alert-panel-count {
-
-    color:
-      var(--moon-rock);
-
-    font-size: 9px;
-
-  }
-
-
-  .alert-panel-list {
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 9px;
-
-  }
-
-
-  .alert-panel-item {
-
-    width: 100%;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    gap: 12px;
-
-    padding: 13px;
-
-    color:
-      var(--soft-dove);
-
-    background:
-      rgba(22,15,12,.38);
-
-    border:
-      1px solid
-      rgba(192,186,179,.11);
-
-    border-radius: 17px;
-
-    text-align: left;
-
-  }
-
-
-  .alert-panel-item-main {
-
-    min-width: 0;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
-
-  }
-
-
-  .alert-panel-number {
-
-    width: 34px;
-    height: 34px;
-
-    flex-shrink: 0;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    background:
-      rgba(57,18,20,.65);
-
-    border-radius: 10px;
-
-    font-size: 9px;
-
-  }
-
-
-  .alert-panel-info {
-
-    min-width: 0;
-
-  }
-
-
-  .alert-panel-name {
-
-    overflow: hidden;
-
-    color:
-      var(--soft-dove);
-
-    font-size: 10px;
-
-    white-space: nowrap;
-
-    text-overflow: ellipsis;
-
-  }
-
-
-  .alert-panel-th {
-
-    margin-top: 3px;
-
-    overflow: hidden;
-
-    color:
-      var(--moon-rock);
-
-    font-family:
-      "Noto Sans Thai",
-      sans-serif;
-
-    font-size: 8px;
-
-    white-space: nowrap;
-
-    text-overflow: ellipsis;
-
-  }
-
-
-  .alert-panel-stock {
-
-    flex-shrink: 0;
-
-    text-align: right;
-
-  }
-
-
-  .alert-panel-current {
-
-    color:
-      #C77A7A;
-
-    font-size: 15px;
-
-    font-weight: 700;
-
-  }
-
-
-  .alert-panel-min {
-
-    margin-top: 2px;
-
-    color:
-      var(--moon-rock);
-
-    font-size: 8px;
-
-  }
-
-
-  @media (min-width: 700px) {
-
-    .alert-panel-overlay {
-
-      align-items: center;
-
-    }
-
-  }
+}
 
 `;
 
-document.head.appendChild(
-  alertStyle
-);
+document.head.appendChild(alertStyle);
 
 
 const floatingAlert =
@@ -1326,28 +860,28 @@ floatingAlert.className =
 
 floatingAlert.innerHTML = `
 
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="1.7"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  >
-    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
-    <path d="M10 21h4"></path>
-  </svg>
+<svg
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.7"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+  <path d="M10 21h4"></path>
+</svg>
 
-  <span>
-    Stock Alert
-  </span>
+<span>
+  Stock Alert
+</span>
 
-  <span
-    class="floating-stock-alert-count"
-    id="floatingAlertCount"
-  >
-    0
-  </span>
+<span
+  class="floating-stock-alert-count"
+  id="floatingAlertCount"
+>
+  0
+</span>
 
 `;
 
@@ -1364,34 +898,29 @@ alertPanelOverlay.className =
 
 alertPanelOverlay.innerHTML = `
 
-  <div class="alert-panel">
+<div class="alert-panel">
 
-    <div
-      class="alert-panel-header"
-    >
+  <div class="alert-panel-header">
 
-      <div
-        class="alert-panel-title"
-      >
-        Stock Alert
-      </div>
-
-      <div
-        class="alert-panel-count"
-        id="alertPanelCount"
-      >
-        0 items
-      </div>
-
+    <div class="alert-panel-title">
+      Stock Alert
     </div>
 
-
     <div
-      class="alert-panel-list"
-      id="alertPanelList"
-    ></div>
+      class="alert-panel-count"
+      id="alertPanelCount"
+    >
+      0 items
+    </div>
 
   </div>
+
+  <div
+    class="alert-panel-list"
+    id="alertPanelList"
+  ></div>
+
+</div>
 
 `;
 
@@ -1469,7 +998,6 @@ async function loadProducts() {
     </div>
   `;
 
-
   const productsResult =
     await supabaseClient
       .from("products")
@@ -1478,7 +1006,6 @@ async function loadProducts() {
       .order("item_no", {
         ascending: true
       });
-
 
   if (productsResult.error) {
 
@@ -1497,16 +1024,13 @@ async function loadProducts() {
 
   }
 
-
   allProducts =
     productsResult.data || [];
-
 
   const stockResult =
     await supabaseClient
       .from("current_stock")
       .select("*");
-
 
   if (stockResult.error) {
 
@@ -1530,7 +1054,6 @@ async function loadProducts() {
       });
 
   }
-
 
   buildCategories();
 
@@ -1561,7 +1084,6 @@ function renderStockAlerts() {
 
   }
 
-
   const alertItems =
     allProducts
       .map(product => {
@@ -1569,14 +1091,12 @@ function renderStockAlerts() {
         const stock =
           stockMap[product.id];
 
-
         const currentStock =
           stock
             ? Number(
                 stock.current_stock
               )
             : 0;
-
 
         const minStock =
           stock
@@ -1587,29 +1107,20 @@ function renderStockAlerts() {
                 product.min_stock || 5
               );
 
-
         return {
-
           ...product,
-
           current_stock:
             currentStock,
-
           min_stock:
             minStock
-
         };
 
       })
-      .filter(item => {
-
-        return (
-          item.current_stock <=
-          item.min_stock
-        );
-
-      })
-      .sort((a, b) => {
+      .filter(item =>
+        item.current_stock <=
+        item.min_stock
+      )
+      .sort((a,b) => {
 
         if (
           a.current_stock !==
@@ -1630,14 +1141,8 @@ function renderStockAlerts() {
 
       });
 
-
-  // ======================================
-  // FLOATING BUTTON
-  // ======================================
-
-  if (
-    alertItems.length
-  ) {
+  // Floating
+  if (alertItems.length) {
 
     floatingAlert.classList.add(
       "show"
@@ -1654,60 +1159,61 @@ function renderStockAlerts() {
 
   }
 
+  // Home Stock Alert
+  if (stockAlertSection) {
 
-  // ======================================
-  // ALERT PANEL
-  // ======================================
+    if (alertItems.length) {
+
+      stockAlertSection.style.display =
+        "";
+
+    } else {
+
+      stockAlertSection.style.display =
+        "none";
+
+    }
+
+  }
+
+  stockAlertCount.textContent =
+    `${alertItems.length} items`;
 
   alertPanelCount.textContent =
     `${alertItems.length} items`;
 
-
-  alertPanelList.innerHTML =
+  stockAlertList.innerHTML =
     alertItems
       .map(item => {
 
         const itemNumber =
           String(item.item_no)
-            .padStart(2, "0");
-
+            .padStart(2,"0");
 
         return `
 
           <button
-            class="alert-panel-item"
+            class="stock-alert-item"
             data-product-id="${escapeHtml(
               item.id
             )}"
           >
 
-            <div
-              class="alert-panel-item-main"
-            >
+            <div class="stock-alert-item-main">
 
-              <div
-                class="alert-panel-number"
-              >
+              <div class="stock-alert-number">
                 ${itemNumber}
               </div>
 
+              <div class="stock-alert-info">
 
-              <div
-                class="alert-panel-info"
-              >
-
-                <div
-                  class="alert-panel-name"
-                >
+                <div class="stock-alert-name">
                   ${escapeHtml(
                     item.name_en || ""
                   )}
                 </div>
 
-
-                <div
-                  class="alert-panel-th"
-                >
+                <div class="stock-alert-th">
                   ${escapeHtml(
                     item.name_th || ""
                   )}
@@ -1717,23 +1223,15 @@ function renderStockAlerts() {
 
             </div>
 
+            <div class="stock-alert-stock">
 
-            <div
-              class="alert-panel-stock"
-            >
-
-              <div
-                class="alert-panel-current"
-              >
+              <div class="stock-alert-current">
                 ${formatNumber(
                   item.current_stock
                 )}
               </div>
 
-
-              <div
-                class="alert-panel-min"
-              >
+              <div class="stock-alert-min">
                 MIN ${
                   formatNumber(
                     item.min_stock
@@ -1750,7 +1248,108 @@ function renderStockAlerts() {
       })
       .join("");
 
+  alertPanelList.innerHTML =
+    alertItems
+      .map(item => {
 
+        const itemNumber =
+          String(item.item_no)
+            .padStart(2,"0");
+
+        return `
+
+          <button
+            class="alert-panel-item"
+            data-product-id="${escapeHtml(
+              item.id
+            )}"
+          >
+
+            <div class="alert-panel-item-main">
+
+              <div class="alert-panel-number">
+                ${itemNumber}
+              </div>
+
+              <div class="alert-panel-info">
+
+                <div class="alert-panel-name">
+                  ${escapeHtml(
+                    item.name_en || ""
+                  )}
+                </div>
+
+                <div class="alert-panel-th">
+                  ${escapeHtml(
+                    item.name_th || ""
+                  )}
+                </div>
+
+              </div>
+
+            </div>
+
+            <div class="alert-panel-stock">
+
+              <div class="alert-panel-current">
+                ${formatNumber(
+                  item.current_stock
+                )}
+              </div>
+
+              <div class="alert-panel-min">
+                MIN ${
+                  formatNumber(
+                    item.min_stock
+                  )
+                }
+              </div>
+
+            </div>
+
+          </button>
+
+        `;
+
+      })
+      .join("");
+
+  // Home alert click
+  if (stockAlertList) {
+
+    stockAlertList
+      .querySelectorAll(
+        ".stock-alert-item"
+      )
+      .forEach(button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            const product =
+              allProducts.find(
+                item =>
+                  item.id ===
+                  button.dataset.productId
+              );
+
+            if (product) {
+
+              openProductDetail(
+                product
+              );
+
+            }
+
+          }
+        );
+
+      });
+
+  }
+
+  // Floating alert click
   alertPanelList
     .querySelectorAll(
       ".alert-panel-item"
@@ -1765,10 +1364,8 @@ function renderStockAlerts() {
             allProducts.find(
               item =>
                 item.id ===
-                button.dataset
-                  .productId
+                button.dataset.productId
             );
-
 
           if (product) {
 
@@ -1799,6 +1396,10 @@ function renderStockAlerts() {
 
 function buildCategories() {
 
+  if (!categoryRow) {
+    return;
+  }
+
   const categories = [
     ...new Set(
       allProducts
@@ -1812,7 +1413,6 @@ function buildCategories() {
     )
   ];
 
-
   categoryRow.innerHTML = `
 
     <button
@@ -1824,7 +1424,6 @@ function buildCategories() {
 
   `;
 
-
   categories.forEach(
     category => {
 
@@ -1833,18 +1432,14 @@ function buildCategories() {
           "button"
         );
 
-
       button.className =
         "category-chip";
-
 
       button.dataset.category =
         category;
 
-
       button.textContent =
         category;
-
 
       categoryRow.appendChild(
         button
@@ -1852,7 +1447,6 @@ function buildCategories() {
 
     }
   );
-
 
   categoryRow
     .querySelectorAll(
@@ -1870,19 +1464,18 @@ function buildCategories() {
             )
             .forEach(item => {
 
-              item.classList
-                .remove("active");
+              item.classList.remove(
+                "active"
+              );
 
             });
 
-
-          button.classList
-            .add("active");
-
+          button.classList.add(
+            "active"
+          );
 
           currentCategory =
             button.dataset.category;
-
 
           applyFilters();
 
@@ -1898,20 +1491,23 @@ function buildCategories() {
 // SEARCH
 // ========================================
 
-searchInput.addEventListener(
-  "input",
-  event => {
+if (searchInput) {
 
-    searchKeyword =
-      event.target.value
-        .trim()
-        .toLowerCase();
+  searchInput.addEventListener(
+    "input",
+    event => {
 
+      searchKeyword =
+        event.target.value
+          .trim()
+          .toLowerCase();
 
-    applyFilters();
+      applyFilters();
 
-  }
-);
+    }
+  );
+
+}
 
 
 // ========================================
@@ -1923,7 +1519,6 @@ function applyFilters() {
   let filtered =
     [...allProducts];
 
-
   if (
     currentCategory !==
     "all"
@@ -1931,19 +1526,13 @@ function applyFilters() {
 
     filtered =
       filtered.filter(
-        product => {
-
-          return (
-            product.category &&
-            product.category.trim() ===
-            currentCategory
-          );
-
-        }
+        product =>
+          product.category &&
+          product.category.trim() ===
+          currentCategory
       );
 
   }
-
 
   if (searchKeyword) {
 
@@ -1971,7 +1560,6 @@ function applyFilters() {
             .join(" ")
             .toLowerCase();
 
-
           return searchText.includes(
             searchKeyword
           );
@@ -1980,7 +1568,6 @@ function applyFilters() {
       );
 
   }
-
 
   renderProducts(
     filtered
@@ -2000,7 +1587,6 @@ function renderProducts(
   productCount.textContent =
     `${products.length} items`;
 
-
   if (!products.length) {
 
     productGrid.innerHTML = `
@@ -2013,19 +1599,16 @@ function renderProducts(
 
   }
 
-
   productGrid.innerHTML =
     products
       .map(product => {
 
         const itemNumber =
           String(product.item_no)
-            .padStart(2, "0");
-
+            .padStart(2,"0");
 
         const stock =
           stockMap[product.id];
-
 
         const currentStock =
           stock
@@ -2034,22 +1617,18 @@ function renderProducts(
               )
             : 0;
 
-
         const minStock =
           stock
             ? Number(
                 stock.min_stock
               )
             : Number(
-                product.min_stock ||
-                5
+                product.min_stock || 5
               );
-
 
         const isLow =
           currentStock <=
           minStock;
-
 
         return `
 
@@ -2072,13 +1651,11 @@ function renderProducts(
                 loading="lazy"
               />
 
-
               <div class="item-number">
                 ${itemNumber}
               </div>
 
             </div>
-
 
             <div class="product-info">
 
@@ -2089,13 +1666,11 @@ function renderProducts(
                 )}
               </div>
 
-
               <div class="product-name-th">
                 ${escapeHtml(
                   product.name_th || ""
                 )}
               </div>
-
 
               <div class="product-meta">
 
@@ -2106,13 +1681,11 @@ function renderProducts(
                   )}
                 </div>
 
-
                 <div class="stock-status">
 
                   <span
                     class="stock-dot"
                   ></span>
-
 
                   <span>
                     ${
@@ -2137,7 +1710,6 @@ function renderProducts(
       })
       .join("");
 
-
   productGrid
     .querySelectorAll(
       ".product-card"
@@ -2152,10 +1724,8 @@ function renderProducts(
             allProducts.find(
               item =>
                 item.id ===
-                card.dataset
-                  .productId
+                card.dataset.productId
             );
-
 
           if (product) {
 
@@ -2184,10 +1754,8 @@ function openProductDetail(
   selectedProduct =
     product;
 
-
   const stock =
     stockMap[product.id];
-
 
   const currentStock =
     stock
@@ -2196,50 +1764,40 @@ function openProductDetail(
         )
       : 0;
 
-
   const minStock =
     stock
       ? Number(
           stock.min_stock
         )
       : Number(
-          product.min_stock ||
-          5
+          product.min_stock || 5
         );
-
 
   const isLow =
     currentStock <=
     minStock;
 
-
   detailNumber.textContent =
     `ITEM ${String(
       product.item_no
-    ).padStart(2, "0")}`;
-
+    ).padStart(2,"0")}`;
 
   detailImage.src =
     product.image_url || "";
 
-
   detailImage.alt =
     product.name_en || "";
-
 
   detailNameEn.textContent =
     product.name_en || "";
 
-
   detailNameTh.textContent =
     product.name_th || "";
-
 
   detailStock.textContent =
     formatNumber(
       currentStock
     );
-
 
   detailMin.textContent =
     `Minimum Stock: ${
@@ -2248,38 +1806,32 @@ function openProductDetail(
       product.unit || ""
     }`;
 
-
   stockBadgeText.textContent =
     isLow
       ? "LOW STOCK"
       : "NORMAL";
-
 
   stockBadge.classList.toggle(
     "low",
     isLow
   );
 
-
-  movementForm.classList
-    .remove("show");
-
+  movementForm.classList.remove(
+    "show"
+  );
 
   movementQuantity.value =
     "";
 
-
   movementNote.value =
     "";
-
 
   formMessage.textContent =
     "";
 
-
-  modalOverlay.classList
-    .add("show");
-
+  modalOverlay.classList.add(
+    "show"
+  );
 
   document.body.style.overflow =
     "hidden";
@@ -2293,17 +1845,15 @@ function openProductDetail(
 
 function closeModal() {
 
-  modalOverlay.classList
-    .remove("show");
-
+  modalOverlay.classList.remove(
+    "show"
+  );
 
   document.body.style.overflow =
     "";
 
-
   selectedProduct =
     null;
-
 
   selectedMovementType =
     null;
@@ -2340,8 +1890,9 @@ document.addEventListener(
 
     if (
       event.key === "Escape" &&
-      modalOverlay.classList
-        .contains("show")
+      modalOverlay.classList.contains(
+        "show"
+      )
     ) {
 
       closeModal();
@@ -2363,17 +1914,14 @@ stockInButton.addEventListener(
     selectedMovementType =
       "IN";
 
-
     movementTitle.textContent =
       "Stock In";
 
-
-    movementForm.classList
-      .add("show");
-
+    movementForm.classList.add(
+      "show"
+    );
 
     movementQuantity.focus();
-
 
     formMessage.textContent =
       "";
@@ -2393,17 +1941,14 @@ stockOutButton.addEventListener(
     selectedMovementType =
       "OUT";
 
-
     movementTitle.textContent =
       "Stock Out";
 
-
-    movementForm.classList
-      .add("show");
-
+    movementForm.classList.add(
+      "show"
+    );
 
     movementQuantity.focus();
-
 
     formMessage.textContent =
       "";
@@ -2429,16 +1974,13 @@ movementSubmit.addEventListener(
 
     }
 
-
     const quantity =
       Number(
         movementQuantity.value
       );
 
-
     const note =
       movementNote.value.trim();
-
 
     if (
       !quantity ||
@@ -2452,12 +1994,10 @@ movementSubmit.addEventListener(
 
     }
 
-
     const stock =
       stockMap[
         selectedProduct.id
       ];
-
 
     const currentStock =
       stock
@@ -2465,7 +2005,6 @@ movementSubmit.addEventListener(
             stock.current_stock
           )
         : 0;
-
 
     if (
       selectedMovementType ===
@@ -2485,7 +2024,6 @@ movementSubmit.addEventListener(
 
     }
 
-
     movementSubmit.disabled =
       true;
 
@@ -2494,7 +2032,6 @@ movementSubmit.addEventListener(
 
     formMessage.textContent =
       "";
-
 
     const { error } =
       await supabaseClient
@@ -2514,7 +2051,6 @@ movementSubmit.addEventListener(
             note || null
 
         });
-
 
     if (error) {
 
@@ -2536,18 +2072,24 @@ movementSubmit.addEventListener(
 
     }
 
-
     formMessage.textContent =
       "บันทึกสำเร็จ";
 
-
     await refreshStock();
 
+    // Refresh Calendar
+    if (
+      typeof loadCalendarMovements ===
+      "function"
+    ) {
+
+      await loadCalendarMovements();
+
+    }
 
     openProductDetail(
       selectedProduct
     );
-
 
     movementSubmit.disabled =
       false;
@@ -2570,7 +2112,6 @@ async function refreshStock() {
       .from("current_stock")
       .select("*");
 
-
   if (error) {
 
     console.error(
@@ -2582,9 +2123,7 @@ async function refreshStock() {
 
   }
 
-
   stockMap = {};
-
 
   (data || [])
     .forEach(stock => {
@@ -2594,11 +2133,9 @@ async function refreshStock() {
 
     });
 
-
   renderStockAlerts();
 
   applyFilters();
-
 
   if (
     typeof renderStockPage ===
@@ -2609,10 +2146,11 @@ async function refreshStock() {
 
   }
 
-
   if (
     typeof loadDashboard ===
       "function" &&
+    typeof dashboardPage !==
+      "undefined" &&
     dashboardPage &&
     dashboardPage.style.display !==
       "none"
@@ -2636,7 +2174,6 @@ function formatNumber(
   const number =
     Number(value);
 
-
   if (
     Number.isInteger(number)
   ) {
@@ -2644,7 +2181,6 @@ function formatNumber(
     return number.toLocaleString();
 
   }
-
 
   return number.toLocaleString(
     undefined,
@@ -2706,81 +2242,77 @@ stockPage.style.display =
 
 stockPage.innerHTML = `
 
-  <div class="section-header">
+<div class="section-header">
+
+  <div class="section-title">
+    Stock
+  </div>
+
+  <div
+    class="section-count"
+    id="stockPageCount"
+  >
+    31 items
+  </div>
+
+</div>
+
+<div class="stock-summary">
+
+  <div class="stock-summary-card">
+
+    <span>
+      Total Items
+    </span>
+
+    <strong id="stockTotalItems">
+      0
+    </strong>
+
+  </div>
+
+  <div class="stock-summary-card low">
+
+    <span>
+      Low Stock
+    </span>
+
+    <strong id="stockLowItems">
+      0
+    </strong>
+
+  </div>
+
+  <div class="stock-summary-card normal">
+
+    <span>
+      Normal
+    </span>
+
+    <strong id="stockNormalItems">
+      0
+    </strong>
+
+  </div>
+
+</div>
+
+<div class="stock-page-list">
+
+  <div class="stock-page-list-header">
 
     <div class="section-title">
-      Stock
-    </div>
-
-    <div
-      class="section-count"
-      id="stockPageCount"
-    >
-      31 items
+      Inventory
     </div>
 
   </div>
 
+  <div
+    id="stockPageList"
+    class="stock-page-list-items"
+  ></div>
 
-  <div class="stock-summary">
-
-    <div class="stock-summary-card">
-
-      <span>
-        Total Items
-      </span>
-
-      <strong id="stockTotalItems">
-        0
-      </strong>
-
-    </div>
-
-
-    <div class="stock-summary-card low">
-
-      <span>
-        Low Stock
-      </span>
-
-      <strong id="stockLowItems">
-        0
-      </strong>
-
-    </div>
-
-
-    <div class="stock-summary-card normal">
-
-      <span>
-        Normal
-      </span>
-
-      <strong id="stockNormalItems">
-        0
-      </strong>
-
-    </div>
-
-  </div>
-
-
-  <div class="stock-page-list">
-
-    <div class="stock-page-list-header">
-
-      <div class="section-title">
-        Inventory
-      </div>
-
-    </div>
-
-    <div
-      id="stockPageList"
-      class="stock-page-list-items"
-    ></div>
-
-  </div>
+</div>
 
 `;
 
@@ -2798,291 +2330,152 @@ const stockPageStyle =
 
 stockPageStyle.textContent = `
 
+.stock-summary {
+  display: grid;
+  grid-template-columns:
+    repeat(3,minmax(0,1fr));
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.stock-summary-card {
+  padding: 16px 12px;
+  background: rgba(82,66,61,.28);
+  border: 1px solid rgba(192,186,179,.14);
+  border-radius: 18px;
+  text-align: center;
+  box-shadow: 0 12px 30px rgba(0,0,0,.16);
+}
+
+.stock-summary-card span {
+  display: block;
+  color: var(--moon-rock);
+  font-size: 8px;
+  letter-spacing: .08em;
+  margin-bottom: 8px;
+}
+
+.stock-summary-card strong {
+  display: block;
+  color: var(--soft-dove);
+  font-size: 23px;
+}
+
+.stock-summary-card.low strong {
+  color: #C77A7A;
+}
+
+.stock-summary-card.normal strong {
+  color: #9FA99D;
+}
+
+.stock-page-list {
+  margin-top: 8px;
+}
+
+.stock-page-list-header {
+  margin-bottom: 12px;
+}
+
+.stock-page-list-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stock-page-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  color: var(--soft-dove);
+  background: rgba(82,66,61,.24);
+  border: 1px solid rgba(192,186,179,.13);
+  border-radius: 18px;
+  text-align: left;
+}
+
+.stock-page-item-main {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stock-page-item-number {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--soft-dove);
+  background: rgba(22,15,12,.45);
+  border: 1px solid rgba(192,186,179,.1);
+  border-radius: 12px;
+  font-size: 10px;
+}
+
+.stock-page-item-info {
+  min-width: 0;
+}
+
+.stock-page-item-name {
+  overflow: hidden;
+  color: var(--soft-dove);
+  font-size: 11px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.stock-page-item-th {
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--moon-rock);
+  font-family: "Noto Sans Thai",sans-serif;
+  font-size: 9px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.stock-page-item-value {
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.stock-page-current {
+  color: var(--soft-dove);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.stock-page-current.low {
+  color: #C77A7A;
+}
+
+.stock-page-min {
+  margin-top: 2px;
+  color: var(--moon-rock);
+  font-size: 8px;
+}
+
+@media (max-width:390px) {
+
   .stock-summary {
-
-    display: grid;
-
-    grid-template-columns:
-      repeat(3, minmax(0, 1fr));
-
-    gap: 10px;
-
-    margin-bottom: 28px;
-
+    gap: 7px;
   }
-
 
   .stock-summary-card {
-
-    padding: 16px 12px;
-
-    background:
-      rgba(82,66,61,.28);
-
-    border:
-      1px solid
-      rgba(192,186,179,.14);
-
-    border-radius: 18px;
-
-    text-align: center;
-
-    box-shadow:
-      0 12px 30px
-      rgba(0,0,0,.16);
-
+    padding: 14px 8px;
   }
-
-
-  .stock-summary-card span {
-
-    display: block;
-
-    color:
-      var(--moon-rock);
-
-    font-size: 8px;
-
-    letter-spacing: .08em;
-
-    margin-bottom: 8px;
-
-  }
-
 
   .stock-summary-card strong {
-
-    display: block;
-
-    color:
-      var(--soft-dove);
-
-    font-size: 23px;
-
+    font-size: 20px;
   }
 
-
-  .stock-summary-card.low strong {
-
-    color: #C77A7A;
-
-  }
-
-
-  .stock-summary-card.normal strong {
-
-    color: #9FA99D;
-
-  }
-
-
-  .stock-page-list {
-
-    margin-top: 8px;
-
-  }
-
-
-  .stock-page-list-header {
-
-    margin-bottom: 12px;
-
-  }
-
-
-  .stock-page-list-items {
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 10px;
-
-  }
-
-
-  .stock-page-item {
-
-    width: 100%;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    gap: 12px;
-
-    padding: 14px;
-
-    color:
-      var(--soft-dove);
-
-    background:
-      rgba(82,66,61,.24);
-
-    border:
-      1px solid
-      rgba(192,186,179,.13);
-
-    border-radius: 18px;
-
-    text-align: left;
-
-  }
-
-
-  .stock-page-item-main {
-
-    min-width: 0;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 12px;
-
-  }
-
-
-  .stock-page-item-number {
-
-    width: 38px;
-    height: 38px;
-
-    flex-shrink: 0;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    color:
-      var(--soft-dove);
-
-    background:
-      rgba(22,15,12,.45);
-
-    border:
-      1px solid
-      rgba(192,186,179,.1);
-
-    border-radius: 12px;
-
-    font-size: 10px;
-
-  }
-
-
-  .stock-page-item-info {
-
-    min-width: 0;
-
-  }
-
-
-  .stock-page-item-name {
-
-    overflow: hidden;
-
-    color:
-      var(--soft-dove);
-
-    font-size: 11px;
-
-    white-space: nowrap;
-
-    text-overflow: ellipsis;
-
-  }
-
-
-  .stock-page-item-th {
-
-    margin-top: 3px;
-
-    overflow: hidden;
-
-    color:
-      var(--moon-rock);
-
-    font-family:
-      "Noto Sans Thai",
-      sans-serif;
-
-    font-size: 9px;
-
-    white-space: nowrap;
-
-    text-overflow: ellipsis;
-
-  }
-
-
-  .stock-page-item-value {
-
-    flex-shrink: 0;
-
-    text-align: right;
-
-  }
-
-
-  .stock-page-current {
-
-    color:
-      var(--soft-dove);
-
-    font-size: 16px;
-
-    font-weight: 700;
-
-  }
-
-
-  .stock-page-current.low {
-
-    color:
-      #C77A7A;
-
-  }
-
-
-  .stock-page-min {
-
-    margin-top: 2px;
-
-    color:
-      var(--moon-rock);
-
-    font-size: 8px;
-
-  }
-
-
-  @media (max-width: 390px) {
-
-    .stock-summary {
-
-      gap: 7px;
-
-    }
-
-
-    .stock-summary-card {
-
-      padding: 14px 8px;
-
-    }
-
-
-    .stock-summary-card strong {
-
-      font-size: 20px;
-
-    }
-
-  }
+}
 
 `;
 
@@ -3100,10 +2493,8 @@ function renderStockPage() {
   const totalItems =
     allProducts.length;
 
-
   let lowItems = 0;
   let normalItems = 0;
-
 
   allProducts.forEach(
     product => {
@@ -3111,14 +2502,12 @@ function renderStockPage() {
       const stock =
         stockMap[product.id];
 
-
       const currentStock =
         stock
           ? Number(
               stock.current_stock
             )
           : 0;
-
 
       const minStock =
         stock
@@ -3128,7 +2517,6 @@ function renderStockPage() {
           : Number(
               product.min_stock || 5
             );
-
 
       if (
         currentStock <=
@@ -3146,14 +2534,12 @@ function renderStockPage() {
     }
   );
 
-
   document
     .getElementById(
       "stockTotalItems"
     )
     .textContent =
     totalItems;
-
 
   document
     .getElementById(
@@ -3162,14 +2548,12 @@ function renderStockPage() {
     .textContent =
     lowItems;
 
-
   document
     .getElementById(
       "stockNormalItems"
     )
     .textContent =
     normalItems;
-
 
   document
     .getElementById(
@@ -3178,12 +2562,10 @@ function renderStockPage() {
     .textContent =
     `${totalItems} items`;
 
-
   const list =
     document.getElementById(
       "stockPageList"
     );
-
 
   list.innerHTML =
     allProducts
@@ -3192,14 +2574,12 @@ function renderStockPage() {
         const stock =
           stockMap[product.id];
 
-
         const currentStock =
           stock
             ? Number(
                 stock.current_stock
               )
             : 0;
-
 
         const minStock =
           stock
@@ -3210,11 +2590,9 @@ function renderStockPage() {
                 product.min_stock || 5
               );
 
-
         const isLow =
           currentStock <=
           minStock;
-
 
         return `
 
@@ -3234,9 +2612,8 @@ function renderStockPage() {
               >
                 ${String(
                   product.item_no
-                ).padStart(2, "0")}
+                ).padStart(2,"0")}
               </div>
-
 
               <div
                 class="stock-page-item-info"
@@ -3250,7 +2627,6 @@ function renderStockPage() {
                   )}
                 </div>
 
-
                 <div
                   class="stock-page-item-th"
                 >
@@ -3262,7 +2638,6 @@ function renderStockPage() {
               </div>
 
             </div>
-
 
             <div
               class="stock-page-item-value"
@@ -3278,7 +2653,6 @@ function renderStockPage() {
                   currentStock
                 )}
               </div>
-
 
               <div
                 class="stock-page-min"
@@ -3299,7 +2673,6 @@ function renderStockPage() {
       })
       .join("");
 
-
   list
     .querySelectorAll(
       ".stock-page-item"
@@ -3314,10 +2687,8 @@ function renderStockPage() {
             allProducts.find(
               item =>
                 item.id ===
-                button.dataset
-                  .productId
+                button.dataset.productId
             );
-
 
           if (product) {
 
@@ -3370,6 +2741,8 @@ const homeElements = [
     .getElementById("categoryRow")
     ?.closest("section"),
 
+  stockAlertSection,
+
   productGrid
 
 ];
@@ -3394,7 +2767,6 @@ function setActiveNav(
       );
 
     });
-
 
   if (activeButton) {
 
@@ -3426,19 +2798,15 @@ function showHomePage() {
     }
   );
 
-
   stockPage.style.display =
     "none";
-
 
   dashboardPage.style.display =
     "none";
 
-
   setActiveNav(
     navHome
   );
-
 
   window.scrollTo({
     top: 0,
@@ -3449,7 +2817,7 @@ function showHomePage() {
 
 
 // ========================================
-// STOCK PAGE
+// STOCK PAGE NAV
 // ========================================
 
 function showStockPage() {
@@ -3467,22 +2835,17 @@ function showStockPage() {
     }
   );
 
-
   dashboardPage.style.display =
     "none";
-
 
   stockPage.style.display =
     "block";
 
-
   renderStockPage();
-
 
   setActiveNav(
     navStock
   );
-
 
   window.scrollTo({
     top: 0,
@@ -3519,201 +2882,346 @@ dashboardPage.style.display =
 
 dashboardPage.innerHTML = `
 
+<div class="section-header">
+
+  <div class="section-title">
+    Dashboard
+  </div>
+
+  <div
+    class="section-count"
+    id="dashboardDate"
+  >
+    Today
+  </div>
+
+</div>
+
+
+<div class="dashboard-grid">
+
+  <div class="dashboard-card">
+
+    <div class="dashboard-card-label">
+      Total Items
+    </div>
+
+    <div
+      class="dashboard-card-value"
+      id="dashboardTotalItems"
+    >
+      0
+    </div>
+
+    <div class="dashboard-card-sub">
+      Products
+    </div>
+
+  </div>
+
+
+  <div class="dashboard-card low">
+
+    <div class="dashboard-card-label">
+      Low Stock
+    </div>
+
+    <div
+      class="dashboard-card-value"
+      id="dashboardLowStock"
+    >
+      0
+    </div>
+
+    <div class="dashboard-card-sub">
+      Need attention
+    </div>
+
+  </div>
+
+
+  <div class="dashboard-card normal">
+
+    <div class="dashboard-card-label">
+      Normal Stock
+    </div>
+
+    <div
+      class="dashboard-card-value"
+      id="dashboardNormalStock"
+    >
+      0
+    </div>
+
+    <div class="dashboard-card-sub">
+      In safe level
+    </div>
+
+  </div>
+
+
+  <div class="dashboard-card">
+
+    <div class="dashboard-card-label">
+      Total Stock
+    </div>
+
+    <div
+      class="dashboard-card-value"
+      id="dashboardTotalStock"
+    >
+      0
+    </div>
+
+    <div class="dashboard-card-sub">
+      Current units
+    </div>
+
+  </div>
+
+
+  <div class="dashboard-card">
+
+    <div class="dashboard-card-label">
+      Stock In Today
+    </div>
+
+    <div
+      class="dashboard-card-value"
+      id="dashboardStockInToday"
+    >
+      0
+    </div>
+
+    <div class="dashboard-card-sub">
+      Received today
+    </div>
+
+  </div>
+
+
+  <div class="dashboard-card">
+
+    <div class="dashboard-card-label">
+      Stock Out Today
+    </div>
+
+    <div
+      class="dashboard-card-value"
+      id="dashboardStockOutToday"
+    >
+      0
+    </div>
+
+    <div class="dashboard-card-sub">
+      Used today
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =====================================
+     CALENDAR
+===================================== -->
+
+<div class="dashboard-section">
+
   <div class="section-header">
 
     <div class="section-title">
-      Dashboard
+      Stock Calendar
     </div>
 
     <div
       class="section-count"
-      id="dashboardDate"
+      id="calendarMonthLabel"
     >
-      Today
+      Month
     </div>
 
   </div>
 
 
-  <div class="dashboard-grid">
+  <div class="calendar-card">
 
-    <div class="dashboard-card">
+    <div class="calendar-header">
 
-      <div class="dashboard-card-label">
-        Total Items
-      </div>
+      <button
+        class="calendar-nav-button"
+        id="calendarPrev"
+        aria-label="Previous month"
+      >
+
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M15 18l-6-6 6-6"></path>
+        </svg>
+
+      </button>
+
 
       <div
-        class="dashboard-card-value"
-        id="dashboardTotalItems"
+        class="calendar-title"
+        id="calendarTitle"
       >
-        0
+        September 2026
       </div>
 
-      <div class="dashboard-card-sub">
-        Products
-      </div>
+
+      <button
+        class="calendar-nav-button"
+        id="calendarNext"
+        aria-label="Next month"
+      >
+
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M9 18l6-6-6-6"></path>
+        </svg>
+
+      </button>
 
     </div>
 
 
-    <div class="dashboard-card low">
+    <div class="calendar-weekdays">
 
-      <div class="dashboard-card-label">
-        Low Stock
-      </div>
-
-      <div
-        class="dashboard-card-value"
-        id="dashboardLowStock"
-      >
-        0
-      </div>
-
-      <div class="dashboard-card-sub">
-        Need attention
-      </div>
-
-    </div>
-
-
-    <div class="dashboard-card normal">
-
-      <div class="dashboard-card-label">
-        Normal Stock
-      </div>
-
-      <div
-        class="dashboard-card-value"
-        id="dashboardNormalStock"
-      >
-        0
-      </div>
-
-      <div class="dashboard-card-sub">
-        In safe level
-      </div>
-
-    </div>
-
-
-    <div class="dashboard-card">
-
-      <div class="dashboard-card-label">
-        Total Stock
-      </div>
-
-      <div
-        class="dashboard-card-value"
-        id="dashboardTotalStock"
-      >
-        0
-      </div>
-
-      <div class="dashboard-card-sub">
-        Current units
-      </div>
-
-    </div>
-
-
-    <div class="dashboard-card">
-
-      <div class="dashboard-card-label">
-        Stock In Today
-      </div>
-
-      <div
-        class="dashboard-card-value"
-        id="dashboardStockInToday"
-      >
-        0
-      </div>
-
-      <div class="dashboard-card-sub">
-        Received today
-      </div>
-
-    </div>
-
-
-    <div class="dashboard-card">
-
-      <div class="dashboard-card-label">
-        Stock Out Today
-      </div>
-
-      <div
-        class="dashboard-card-value"
-        id="dashboardStockOutToday"
-      >
-        0
-      </div>
-
-      <div class="dashboard-card-sub">
-        Used today
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <div class="dashboard-section">
-
-    <div class="section-header">
-
-      <div class="section-title">
-        Recent Stock Movements
-      </div>
-
-      <div
-        class="section-count"
-        id="movementCount"
-      >
-        Latest 10
-      </div>
+      <div>MON</div>
+      <div>TUE</div>
+      <div>WED</div>
+      <div>THU</div>
+      <div>FRI</div>
+      <div>SAT</div>
+      <div>SUN</div>
 
     </div>
 
 
     <div
-      class="movement-list"
-      id="movementList"
-    >
-
-      <div class="dashboard-loading">
-        Loading...
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <div class="dashboard-section">
-
-    <div class="section-header">
-
-      <div class="section-title">
-        Inventory Overview
-      </div>
-
-    </div>
+      class="calendar-grid"
+      id="calendarGrid"
+    ></div>
 
 
     <div
-      class="dashboard-overview"
-      id="dashboardOverview"
+      class="calendar-selected"
+      id="calendarSelected"
     >
 
-      <div class="dashboard-loading">
-        Loading...
+      <div class="calendar-selected-header">
+
+        <div
+          class="calendar-selected-date"
+          id="calendarSelectedDate"
+        >
+          Select a date
+        </div>
+
+        <div
+          class="calendar-selected-count"
+          id="calendarSelectedCount"
+        >
+          0 movements
+        </div>
+
       </div>
+
+
+      <div
+        class="calendar-day-summary"
+        id="calendarDaySummary"
+      ></div>
+
+
+      <div
+        class="calendar-day-list"
+        id="calendarDayList"
+      ></div>
 
     </div>
 
   </div>
+
+</div>
+
+
+<!-- =====================================
+     RECENT MOVEMENTS
+===================================== -->
+
+<div class="dashboard-section">
+
+  <div class="section-header">
+
+    <div class="section-title">
+      Recent Stock Movements
+    </div>
+
+    <div
+      class="section-count"
+      id="movementCount"
+    >
+      Latest 10
+    </div>
+
+  </div>
+
+
+  <div
+    class="movement-list"
+    id="movementList"
+  >
+
+    <div class="dashboard-loading">
+      Loading...
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =====================================
+     INVENTORY
+===================================== -->
+
+<div class="dashboard-section">
+
+  <div class="section-header">
+
+    <div class="section-title">
+      Inventory Overview
+    </div>
+
+  </div>
+
+
+  <div
+    class="dashboard-overview"
+    id="dashboardOverview"
+  >
+
+    <div class="dashboard-loading">
+      Loading...
+    </div>
+
+  </div>
+
+</div>
 
 `;
 
@@ -3733,517 +3241,553 @@ const dashboardStyle =
 
 dashboardStyle.textContent = `
 
+.dashboard-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2,minmax(0,1fr));
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.dashboard-card {
+  min-height: 135px;
+  padding: 18px;
+  background: rgba(82,66,61,.28);
+  border: 1px solid rgba(192,186,179,.14);
+  border-radius: 22px;
+  box-shadow: 0 12px 30px rgba(0,0,0,.16);
+}
+
+.dashboard-card.low {
+  background: rgba(57,18,20,.32);
+}
+
+.dashboard-card-label {
+  color: var(--moon-rock);
+  font-size: 8px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.dashboard-card-value {
+  color: var(--soft-dove);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.dashboard-card.low .dashboard-card-value {
+  color: #C77A7A;
+}
+
+.dashboard-card.normal .dashboard-card-value {
+  color: #9FA99D;
+}
+
+.dashboard-card-sub {
+  margin-top: 10px;
+  color: var(--moon-rock);
+  font-size: 8px;
+}
+
+.dashboard-section {
+  margin-top: 28px;
+}
+
+
+/* =====================================
+   CALENDAR
+===================================== */
+
+.calendar-card {
+  padding: 16px;
+  background: rgba(82,66,61,.24);
+  border: 1px solid rgba(192,186,179,.13);
+  border-radius: 22px;
+  box-shadow: 0 12px 30px rgba(0,0,0,.14);
+}
+
+.calendar-header {
+  display: grid;
+  grid-template-columns: 42px 1fr 42px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.calendar-nav-button {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--soft-dove);
+  background: rgba(22,15,12,.4);
+  border: 1px solid rgba(192,186,179,.12);
+  border-radius: 13px;
+}
+
+.calendar-nav-button svg {
+  width: 17px;
+  height: 17px;
+}
+
+.calendar-title {
+  color: var(--soft-dove);
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns:
+    repeat(7,minmax(0,1fr));
+  margin-bottom: 8px;
+}
+
+.calendar-weekdays div {
+  color: var(--moon-rock);
+  text-align: center;
+  font-size: 7px;
+  letter-spacing: .08em;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(7,minmax(0,1fr));
+  gap: 5px;
+}
+
+.calendar-day {
+  position: relative;
+  min-height: 44px;
+  padding: 7px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  color: var(--soft-dove);
+  background: rgba(22,15,12,.26);
+  border: 1px solid transparent;
+  border-radius: 12px;
+}
+
+.calendar-day.empty {
+  background: transparent;
+}
+
+.calendar-day-number {
+  font-size: 10px;
+  line-height: 1;
+}
+
+.calendar-day.today {
+  border-color: rgba(192,186,179,.28);
+}
+
+.calendar-day.selected {
+  background: rgba(57,18,20,.7);
+  border-color: rgba(192,186,179,.22);
+}
+
+.calendar-day.has-movement::after {
+  content: "";
+  width: 4px;
+  height: 4px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: #C77A7A;
+}
+
+.calendar-day.has-in::before {
+  content: "";
+  position: absolute;
+  bottom: 5px;
+  left: 7px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #9FA99D;
+}
+
+.calendar-selected {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(192,186,179,.1);
+}
+
+.calendar-selected-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.calendar-selected-date {
+  color: var(--soft-dove);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.calendar-selected-count {
+  color: var(--moon-rock);
+  font-size: 8px;
+}
+
+.calendar-day-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.calendar-summary-box {
+  padding: 11px;
+  background: rgba(22,15,12,.32);
+  border: 1px solid rgba(192,186,179,.1);
+  border-radius: 13px;
+}
+
+.calendar-summary-label {
+  color: var(--moon-rock);
+  font-size: 7px;
+  letter-spacing: .08em;
+  margin-bottom: 5px;
+}
+
+.calendar-summary-value {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.calendar-summary-value.in {
+  color: #9FA99D;
+}
+
+.calendar-summary-value.out {
+  color: #C77A7A;
+}
+
+.calendar-day-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.calendar-day-movement {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px;
+  background: rgba(22,15,12,.28);
+  border: 1px solid rgba(192,186,179,.09);
+  border-radius: 14px;
+}
+
+.calendar-day-movement-main {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.calendar-day-type {
+  width: 29px;
+  height: 29px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  font-size: 7px;
+  font-weight: 700;
+}
+
+.calendar-day-type.in {
+  color: #9FA99D;
+  background: rgba(159,169,157,.1);
+}
+
+.calendar-day-type.out {
+  color: #C77A7A;
+  background: rgba(199,122,122,.1);
+}
+
+.calendar-day-info {
+  min-width: 0;
+}
+
+.calendar-day-name {
+  overflow: hidden;
+  color: var(--soft-dove);
+  font-size: 9px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.calendar-day-meta {
+  margin-top: 3px;
+  color: var(--moon-rock);
+  font-size: 7px;
+}
+
+.calendar-day-quantity {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.calendar-day-quantity.in {
+  color: #9FA99D;
+}
+
+.calendar-day-quantity.out {
+  color: #C77A7A;
+}
+
+.calendar-empty {
+  padding: 18px;
+  color: var(--moon-rock);
+  text-align: center;
+  font-size: 9px;
+  background: rgba(22,15,12,.2);
+  border-radius: 13px;
+}
+
+
+/* =====================================
+   MOVEMENTS
+===================================== */
+
+.movement-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.movement-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  background: rgba(82,66,61,.24);
+  border: 1px solid rgba(192,186,179,.13);
+  border-radius: 18px;
+}
+
+.movement-main {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.movement-type {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.movement-type.in {
+  color: #9FA99D;
+  background: rgba(159,169,157,.1);
+}
+
+.movement-type.out {
+  color: #C77A7A;
+  background: rgba(199,122,122,.1);
+}
+
+.movement-info {
+  min-width: 0;
+}
+
+.movement-name {
+  overflow: hidden;
+  color: var(--soft-dove);
+  font-size: 10px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.movement-meta {
+  margin-top: 3px;
+  color: var(--moon-rock);
+  font-size: 8px;
+}
+
+.movement-right {
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.movement-quantity {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.movement-quantity.in {
+  color: #9FA99D;
+}
+
+.movement-quantity.out {
+  color: #C77A7A;
+}
+
+.movement-time {
+  margin-top: 3px;
+  color: var(--moon-rock);
+  font-size: 7px;
+}
+
+.movement-empty {
+  padding: 30px;
+  color: var(--moon-rock);
+  text-align: center;
+  font-size: 10px;
+  background: rgba(82,66,61,.18);
+  border-radius: 18px;
+}
+
+
+/* =====================================
+   OVERVIEW
+===================================== */
+
+.dashboard-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dashboard-overview-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px;
+  background: rgba(82,66,61,.24);
+  border: 1px solid rgba(192,186,179,.13);
+  border-radius: 18px;
+}
+
+.dashboard-overview-main {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dashboard-overview-number {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--soft-dove);
+  background: rgba(22,15,12,.45);
+  border: 1px solid rgba(192,186,179,.1);
+  border-radius: 11px;
+  font-size: 9px;
+}
+
+.dashboard-overview-info {
+  min-width: 0;
+}
+
+.dashboard-overview-name {
+  overflow: hidden;
+  color: var(--soft-dove);
+  font-size: 10px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.dashboard-overview-th {
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--moon-rock);
+  font-family: "Noto Sans Thai",sans-serif;
+  font-size: 8px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.dashboard-overview-stock {
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.dashboard-overview-current {
+  color: var(--soft-dove);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.dashboard-overview-current.low {
+  color: #C77A7A;
+}
+
+.dashboard-overview-min {
+  margin-top: 2px;
+  color: var(--moon-rock);
+  font-size: 8px;
+}
+
+.dashboard-loading {
+  padding: 30px;
+  color: var(--moon-rock);
+  text-align: center;
+  font-size: 10px;
+}
+
+@media (min-width:700px) {
+
   .dashboard-grid {
-
-    display: grid;
-
     grid-template-columns:
-      repeat(2, minmax(0, 1fr));
-
-    gap: 10px;
-
-    margin-bottom: 28px;
-
+      repeat(3,minmax(0,1fr));
   }
 
+}
+
+@media (max-width:390px) {
 
   .dashboard-card {
-
-    min-height: 135px;
-
-    padding: 18px;
-
-    background:
-      rgba(82,66,61,.28);
-
-    border:
-      1px solid
-      rgba(192,186,179,.14);
-
-    border-radius: 22px;
-
-    box-shadow:
-      0 12px 30px
-      rgba(0,0,0,.16);
-
-  }
-
-
-  .dashboard-card.low {
-
-    background:
-      rgba(57,18,20,.32);
-
-  }
-
-
-  .dashboard-card.normal {
-
-    background:
-      rgba(82,66,61,.28);
-
-  }
-
-
-  .dashboard-card-label {
-
-    color:
-      var(--moon-rock);
-
-    font-size: 8px;
-
-    letter-spacing: .08em;
-
-    text-transform: uppercase;
-
-    margin-bottom: 14px;
-
-  }
-
-
-  .dashboard-card-value {
-
-    color:
-      var(--soft-dove);
-
-    font-size: 30px;
-
-    font-weight: 700;
-
-    line-height: 1;
-
-  }
-
-
-  .dashboard-card.low
-  .dashboard-card-value {
-
-    color: #C77A7A;
-
-  }
-
-
-  .dashboard-card.normal
-  .dashboard-card-value {
-
-    color: #9FA99D;
-
-  }
-
-
-  .dashboard-card-sub {
-
-    margin-top: 10px;
-
-    color:
-      var(--moon-rock);
-
-    font-size: 8px;
-
-  }
-
-
-  .dashboard-section {
-
-    margin-top: 28px;
-
-  }
-
-
-  .movement-list {
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 9px;
-
-  }
-
-
-  .movement-item {
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    gap: 12px;
-
-    padding: 14px;
-
-    background:
-      rgba(82,66,61,.24);
-
-    border:
-      1px solid
-      rgba(192,186,179,.13);
-
-    border-radius: 18px;
-
-  }
-
-
-  .movement-main {
-
-    min-width: 0;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 11px;
-
-  }
-
-
-  .movement-type {
-
-    width: 34px;
-    height: 34px;
-
-    flex-shrink: 0;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 11px;
-
-    font-size: 9px;
-
-    font-weight: 700;
-
-  }
-
-
-  .movement-type.in {
-
-    color: #9FA99D;
-
-    background:
-      rgba(159,169,157,.1);
-
-  }
-
-
-  .movement-type.out {
-
-    color: #C77A7A;
-
-    background:
-      rgba(199,122,122,.1);
-
-  }
-
-
-  .movement-info {
-
-    min-width: 0;
-
-  }
-
-
-  .movement-name {
-
-    overflow: hidden;
-
-    color:
-      var(--soft-dove);
-
-    font-size: 10px;
-
-    white-space: nowrap;
-
-    text-overflow: ellipsis;
-
-  }
-
-
-  .movement-meta {
-
-    margin-top: 3px;
-
-    color:
-      var(--moon-rock);
-
-    font-size: 8px;
-
-  }
-
-
-  .movement-right {
-
-    flex-shrink: 0;
-
-    text-align: right;
-
-  }
-
-
-  .movement-quantity {
-
-    font-size: 14px;
-
-    font-weight: 700;
-
-  }
-
-
-  .movement-quantity.in {
-
-    color: #9FA99D;
-
-  }
-
-
-  .movement-quantity.out {
-
-    color: #C77A7A;
-
-  }
-
-
-  .movement-time {
-
-    margin-top: 3px;
-
-    color:
-      var(--moon-rock);
-
-    font-size: 7px;
-
-  }
-
-
-  .movement-empty {
-
-    padding: 30px;
-
-    color:
-      var(--moon-rock);
-
-    text-align: center;
-
-    font-size: 10px;
-
-    background:
-      rgba(82,66,61,.18);
-
-    border-radius: 18px;
-
-  }
-
-
-  .dashboard-overview {
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 10px;
-
-  }
-
-
-  .dashboard-overview-item {
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    gap: 12px;
-
+    min-height: 125px;
     padding: 15px;
-
-    background:
-      rgba(82,66,61,.24);
-
-    border:
-      1px solid
-      rgba(192,186,179,.13);
-
-    border-radius: 18px;
-
   }
 
-
-  .dashboard-overview-main {
-
-    min-width: 0;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 12px;
-
+  .dashboard-card-value {
+    font-size: 26px;
   }
 
-
-  .dashboard-overview-number {
-
-    width: 36px;
-    height: 36px;
-
-    flex-shrink: 0;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    color:
-      var(--soft-dove);
-
-    background:
-      rgba(22,15,12,.45);
-
-    border:
-      1px solid
-      rgba(192,186,179,.1);
-
-    border-radius: 11px;
-
-    font-size: 9px;
-
+  .calendar-card {
+    padding: 12px;
   }
 
-
-  .dashboard-overview-info {
-
-    min-width: 0;
-
+  .calendar-grid {
+    gap: 3px;
   }
 
-
-  .dashboard-overview-name {
-
-    overflow: hidden;
-
-    color:
-      var(--soft-dove);
-
-    font-size: 10px;
-
-    white-space: nowrap;
-
-    text-overflow: ellipsis;
-
+  .calendar-day {
+    min-height: 41px;
   }
 
-
-  .dashboard-overview-th {
-
-    margin-top: 3px;
-
-    overflow: hidden;
-
-    color:
-      var(--moon-rock);
-
-    font-family:
-      "Noto Sans Thai",
-      sans-serif;
-
-    font-size: 8px;
-
-    white-space: nowrap;
-
-    text-overflow: ellipsis;
-
-  }
-
-
-  .dashboard-overview-stock {
-
-    flex-shrink: 0;
-
-    text-align: right;
-
-  }
-
-
-  .dashboard-overview-current {
-
-    color:
-      var(--soft-dove);
-
-    font-size: 15px;
-
-    font-weight: 700;
-
-  }
-
-
-  .dashboard-overview-current.low {
-
-    color:
-      #C77A7A;
-
-  }
-
-
-  .dashboard-overview-min {
-
-    margin-top: 2px;
-
-    color:
-      var(--moon-rock);
-
-    font-size: 8px;
-
-  }
-
-
-  .dashboard-loading {
-
-    padding: 30px;
-
-    color:
-      var(--moon-rock);
-
-    text-align: center;
-
-    font-size: 10px;
-
-  }
-
-
-  @media (min-width: 700px) {
-
-    .dashboard-grid {
-
-      grid-template-columns:
-        repeat(3, minmax(0, 1fr));
-
-    }
-
-  }
-
-
-  @media (max-width: 390px) {
-
-    .dashboard-card {
-
-      min-height: 125px;
-
-      padding: 15px;
-
-    }
-
-
-    .dashboard-card-value {
-
-      font-size: 26px;
-
-    }
-
-  }
+}
 
 `;
 
@@ -4307,6 +3851,172 @@ const movementCount =
   );
 
 
+// Calendar elements
+
+const calendarMonthLabel =
+  document.getElementById(
+    "calendarMonthLabel"
+  );
+
+const calendarTitle =
+  document.getElementById(
+    "calendarTitle"
+  );
+
+const calendarGrid =
+  document.getElementById(
+    "calendarGrid"
+  );
+
+const calendarPrev =
+  document.getElementById(
+    "calendarPrev"
+  );
+
+const calendarNext =
+  document.getElementById(
+    "calendarNext"
+  );
+
+const calendarSelectedDate =
+  document.getElementById(
+    "calendarSelectedDate"
+  );
+
+const calendarSelectedCount =
+  document.getElementById(
+    "calendarSelectedCount"
+  );
+
+const calendarDaySummary =
+  document.getElementById(
+    "calendarDaySummary"
+  );
+
+const calendarDayList =
+  document.getElementById(
+    "calendarDayList"
+  );
+
+
+// ========================================
+// THAILAND TIME HELPERS
+// ========================================
+
+function getBangkokDateKey(
+  dateValue
+) {
+
+  const date =
+    new Date(dateValue);
+
+  const parts =
+    new Intl.DateTimeFormat(
+      "en-CA",
+      {
+        timeZone: "Asia/Bangkok",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }
+    ).formatToParts(date);
+
+  const year =
+    parts.find(
+      p => p.type === "year"
+    )?.value;
+
+  const month =
+    parts.find(
+      p => p.type === "month"
+    )?.value;
+
+  const day =
+    parts.find(
+      p => p.type === "day"
+    )?.value;
+
+  return `${year}-${month}-${day}`;
+
+}
+
+
+function formatBangkokDate(
+  dateValue
+) {
+
+  return new Intl.DateTimeFormat(
+    "en-GB",
+    {
+      timeZone: "Asia/Bangkok",
+      day: "2-digit",
+      month: "short",
+      year: "numeric"
+    }
+  ).format(
+    new Date(dateValue)
+  );
+
+}
+
+
+function formatBangkokTime(
+  dateValue
+) {
+
+  return new Intl.DateTimeFormat(
+    "en-GB",
+    {
+      timeZone: "Asia/Bangkok",
+      hour: "2-digit",
+      minute: "2-digit"
+    }
+  ).format(
+    new Date(dateValue)
+  );
+
+}
+
+
+function getBangkokMonthRange(
+  year,
+  month
+) {
+
+  // Bangkok = UTC+07:00
+
+  const start =
+    new Date(
+      `${year}-${String(
+        month + 1
+      ).padStart(2,"0")}-01T00:00:00+07:00`
+    );
+
+  const nextMonth =
+    month === 11
+      ? 1
+      : month + 2;
+
+  const nextYear =
+    month === 11
+      ? year + 1
+      : year;
+
+  const end =
+    new Date(
+      `${nextYear}-${String(
+        nextMonth
+      ).padStart(2,"0")}-01T00:00:00+07:00`
+    );
+
+  return {
+    start,
+    end
+  };
+
+}
+
+
 // ========================================
 // LOAD RECENT MOVEMENTS
 // ========================================
@@ -4318,7 +4028,6 @@ async function loadRecentMovements() {
       Loading...
     </div>
   `;
-
 
   const result =
     await supabaseClient
@@ -4345,14 +4054,12 @@ async function loadRecentMovements() {
       )
       .limit(10);
 
-
   if (result.error) {
 
     console.error(
       "Recent movements error:",
       result.error
     );
-
 
     movementList.innerHTML = `
       <div class="movement-empty">
@@ -4364,14 +4071,11 @@ async function loadRecentMovements() {
 
   }
 
-
   const movements =
     result.data || [];
 
-
   movementCount.textContent =
     `Latest ${movements.length}`;
-
 
   if (!movements.length) {
 
@@ -4385,7 +4089,6 @@ async function loadRecentMovements() {
 
   }
 
-
   movementList.innerHTML =
     movements
       .map(movement => {
@@ -4393,29 +4096,24 @@ async function loadRecentMovements() {
         const product =
           movement.products;
 
-
         const isIn =
           movement.movement_type ===
           "IN";
-
 
         const typeClass =
           isIn
             ? "in"
             : "out";
 
-
         const typeText =
           isIn
             ? "IN"
             : "OUT";
 
-
         const sign =
           isIn
             ? "+"
             : "-";
-
 
         const quantity =
           formatNumber(
@@ -4424,24 +4122,14 @@ async function loadRecentMovements() {
             ) || 0
           );
 
-
-        const date =
-          new Date(
+        const timeText =
+          formatBangkokDate(
+            movement.created_at
+          ) +
+          " " +
+          formatBangkokTime(
             movement.created_at
           );
-
-
-        const timeText =
-          date.toLocaleString(
-            "en-GB",
-            {
-              day: "2-digit",
-              month: "short",
-              hour: "2-digit",
-              minute: "2-digit"
-            }
-          );
-
 
         const note =
           movement.note
@@ -4449,7 +4137,6 @@ async function loadRecentMovements() {
                 movement.note
               )}`
             : "";
-
 
         return `
 
@@ -4470,7 +4157,6 @@ async function loadRecentMovements() {
                 ${typeText}
               </div>
 
-
               <div
                 class="movement-info"
               >
@@ -4483,7 +4169,6 @@ async function loadRecentMovements() {
                     "Unknown Product"
                   )}
                 </div>
-
 
                 <div
                   class="movement-meta"
@@ -4500,7 +4185,6 @@ async function loadRecentMovements() {
 
             </div>
 
-
             <div
               class="movement-right"
             >
@@ -4513,7 +4197,6 @@ async function loadRecentMovements() {
               >
                 ${sign}${quantity}
               </div>
-
 
               <div
                 class="movement-time"
@@ -4542,11 +4225,9 @@ async function loadDashboard() {
   dashboardTotalItems.textContent =
     allProducts.length;
 
-
   let lowItems = 0;
   let normalItems = 0;
   let totalStock = 0;
-
 
   allProducts.forEach(
     product => {
@@ -4554,14 +4235,12 @@ async function loadDashboard() {
       const stock =
         stockMap[product.id];
 
-
       const currentStock =
         stock
           ? Number(
               stock.current_stock
             )
           : 0;
-
 
       const minStock =
         stock
@@ -4572,10 +4251,8 @@ async function loadDashboard() {
               product.min_stock || 5
             );
 
-
       totalStock +=
         currentStock;
-
 
       if (
         currentStock <=
@@ -4593,14 +4270,11 @@ async function loadDashboard() {
     }
   );
 
-
   dashboardLowStock.textContent =
     lowItems;
 
-
   dashboardNormalStock.textContent =
     normalItems;
-
 
   dashboardTotalStock.textContent =
     formatNumber(
@@ -4609,31 +4283,32 @@ async function loadDashboard() {
 
 
   // ======================================
-  // TODAY
+  // TODAY - BANGKOK
   // ======================================
 
-  const today =
+  const now =
     new Date();
 
-
-  const startOfDay =
-    new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate()
+  const todayKey =
+    getBangkokDateKey(
+      now
     );
 
-
   const startISO =
-    startOfDay.toISOString();
-
-
-  const endISO =
     new Date(
-      startOfDay.getTime() +
-      24 * 60 * 60 * 1000
+      `${todayKey}T00:00:00+07:00`
     ).toISOString();
 
+  const endDate =
+    new Date(
+      new Date(
+        `${todayKey}T00:00:00+07:00`
+      ).getTime() +
+      24 * 60 * 60 * 1000
+    );
+
+  const endISO =
+    endDate.toISOString();
 
   const movementResult =
     await supabaseClient
@@ -4650,7 +4325,6 @@ async function loadDashboard() {
         endISO
       );
 
-
   if (
     movementResult.error
   ) {
@@ -4660,10 +4334,8 @@ async function loadDashboard() {
       movementResult.error
     );
 
-
     dashboardStockInToday.textContent =
       "—";
-
 
     dashboardStockOutToday.textContent =
       "—";
@@ -4672,7 +4344,6 @@ async function loadDashboard() {
 
     let stockInToday = 0;
     let stockOutToday = 0;
-
 
     (
       movementResult.data ||
@@ -4685,7 +4356,6 @@ async function loadDashboard() {
             movement.quantity
           ) || 0;
 
-
         if (
           movement.movement_type ===
           "IN"
@@ -4695,7 +4365,6 @@ async function loadDashboard() {
             quantity;
 
         }
-
 
         if (
           movement.movement_type ===
@@ -4710,12 +4379,10 @@ async function loadDashboard() {
       }
     );
 
-
     dashboardStockInToday.textContent =
       formatNumber(
         stockInToday
       );
-
 
     dashboardStockOutToday.textContent =
       formatNumber(
@@ -4730,18 +4397,21 @@ async function loadDashboard() {
   // ======================================
 
   dashboardDate.textContent =
-    today.toLocaleDateString(
+    new Intl.DateTimeFormat(
       "en-GB",
       {
+        timeZone: "Asia/Bangkok",
         day: "2-digit",
         month: "short",
         year: "numeric"
       }
+    ).format(
+      now
     );
 
 
   // ======================================
-  // RECENT MOVEMENTS
+  // RECENT
   // ======================================
 
   await loadRecentMovements();
@@ -4758,14 +4428,12 @@ async function loadDashboard() {
         const stock =
           stockMap[product.id];
 
-
         const currentStock =
           stock
             ? Number(
                 stock.current_stock
               )
             : 0;
-
 
         const minStock =
           stock
@@ -4776,11 +4444,9 @@ async function loadDashboard() {
                 product.min_stock || 5
               );
 
-
         const isLow =
           currentStock <=
           minStock;
-
 
         return `
 
@@ -4800,7 +4466,6 @@ async function loadDashboard() {
                 ).padStart(2,"0")}
               </div>
 
-
               <div
                 class="dashboard-overview-info"
               >
@@ -4813,7 +4478,6 @@ async function loadDashboard() {
                   )}
                 </div>
 
-
                 <div
                   class="dashboard-overview-th"
                 >
@@ -4825,7 +4489,6 @@ async function loadDashboard() {
               </div>
 
             </div>
-
 
             <div
               class="dashboard-overview-stock"
@@ -4841,7 +4504,6 @@ async function loadDashboard() {
                   currentStock
                 )}
               </div>
-
 
               <div
                 class="dashboard-overview-min"
@@ -4866,6 +4528,660 @@ async function loadDashboard() {
 
 
 // ========================================
+// CALENDAR - LOAD MOVEMENTS
+// ========================================
+
+async function loadCalendarMovements() {
+
+  if (
+    !calendarGrid
+  ) {
+
+    return;
+
+  }
+
+  const year =
+    calendarDate.getFullYear();
+
+  const month =
+    calendarDate.getMonth();
+
+  const range =
+    getBangkokMonthRange(
+      year,
+      month
+    );
+
+  calendarGrid.innerHTML = `
+    <div
+      class="calendar-empty"
+      style="grid-column:1/-1;"
+    >
+      Loading...
+    </div>
+  `;
+
+  const result =
+    await supabaseClient
+      .from("stock_movements")
+      .select(`
+        id,
+        movement_type,
+        quantity,
+        note,
+        created_at,
+        product_id,
+        products (
+          item_no,
+          name_en,
+          name_th,
+          unit
+        )
+      `)
+      .gte(
+        "created_at",
+        range.start.toISOString()
+      )
+      .lt(
+        "created_at",
+        range.end.toISOString()
+      )
+      .order(
+        "created_at",
+        {
+          ascending: true
+        }
+      );
+
+  if (result.error) {
+
+    console.error(
+      "Calendar movement error:",
+      result.error
+    );
+
+    calendarMovements = [];
+
+    renderCalendar();
+
+    calendarDayList.innerHTML = `
+      <div class="calendar-empty">
+        โหลดข้อมูลปฏิทินไม่สำเร็จ
+      </div>
+    `;
+
+    return;
+
+  }
+
+  calendarMovements =
+    result.data || [];
+
+  renderCalendar();
+
+}
+
+
+// ========================================
+// CALENDAR - RENDER
+// ========================================
+
+function renderCalendar() {
+
+  const year =
+    calendarDate.getFullYear();
+
+  const month =
+    calendarDate.getMonth();
+
+  const monthName =
+    new Intl.DateTimeFormat(
+      "en-US",
+      {
+        month: "long"
+      }
+    ).format(
+      new Date(
+        year,
+        month,
+        1
+      )
+    );
+
+  const monthShort =
+    new Intl.DateTimeFormat(
+      "en-US",
+      {
+        month: "short"
+      }
+    ).format(
+      new Date(
+        year,
+        month,
+        1
+      )
+    );
+
+  calendarTitle.textContent =
+    `${monthName} ${year}`;
+
+  calendarMonthLabel.textContent =
+    `${monthShort} ${year}`;
+
+
+  // ======================================
+  // GROUP MOVEMENTS BY BANGKOK DATE
+  // ======================================
+
+  const movementByDate = {};
+
+  calendarMovements.forEach(
+    movement => {
+
+      const key =
+        getBangkokDateKey(
+          movement.created_at
+        );
+
+      if (
+        !movementByDate[key]
+      ) {
+
+        movementByDate[key] =
+          [];
+
+      }
+
+      movementByDate[key].push(
+        movement
+      );
+
+    }
+  );
+
+
+  // ======================================
+  // CALENDAR DAYS
+  // ======================================
+
+  const firstDay =
+    new Date(
+      year,
+      month,
+      1
+    );
+
+  const daysInMonth =
+    new Date(
+      year,
+      month + 1,
+      0
+    ).getDate();
+
+  // Monday = 0
+  let startOffset =
+    firstDay.getDay() - 1;
+
+  if (
+    startOffset < 0
+  ) {
+
+    startOffset = 6;
+
+  }
+
+
+  let html = "";
+
+  for (
+    let i = 0;
+    i < startOffset;
+    i++
+  ) {
+
+    html += `
+      <div class="calendar-day empty"></div>
+    `;
+
+  }
+
+
+  const todayKey =
+    getBangkokDateKey(
+      new Date()
+    );
+
+
+  for (
+    let day = 1;
+    day <= daysInMonth;
+    day++
+  ) {
+
+    const dateKey =
+      `${year}-${String(
+        month + 1
+      ).padStart(2,"0")}-${String(
+        day
+      ).padStart(2,"0")}`;
+
+    const dayMovements =
+      movementByDate[
+        dateKey
+      ] || [];
+
+    const hasMovement =
+      dayMovements.length > 0;
+
+    const hasIn =
+      dayMovements.some(
+        movement =>
+          movement.movement_type ===
+          "IN"
+      );
+
+    const isToday =
+      dateKey ===
+      todayKey;
+
+    const isSelected =
+      dateKey ===
+      selectedCalendarDate;
+
+    html += `
+
+      <button
+        class="
+          calendar-day
+          ${hasMovement ? "has-movement" : ""}
+          ${hasIn ? "has-in" : ""}
+          ${isToday ? "today" : ""}
+          ${isSelected ? "selected" : ""}
+        "
+        data-date="${dateKey}"
+      >
+
+        <span class="calendar-day-number">
+          ${day}
+        </span>
+
+      </button>
+
+    `;
+
+  }
+
+
+  calendarGrid.innerHTML =
+    html;
+
+
+  calendarGrid
+    .querySelectorAll(
+      ".calendar-day:not(.empty)"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          selectedCalendarDate =
+            button.dataset.date;
+
+          renderCalendar();
+
+          renderCalendarSelectedDay();
+
+        }
+      );
+
+    });
+
+
+  // Automatically select today
+  // when current month is current month
+  if (
+    !selectedCalendarDate
+  ) {
+
+    const currentYear =
+      Number(
+        todayKey.split("-")[0]
+      );
+
+    const currentMonth =
+      Number(
+        todayKey.split("-")[1]
+      ) - 1;
+
+    if (
+      currentYear === year &&
+      currentMonth === month
+    ) {
+
+      selectedCalendarDate =
+        todayKey;
+
+      renderCalendar();
+
+      renderCalendarSelectedDay();
+
+    }
+
+  }
+
+}
+
+
+// ========================================
+// CALENDAR - SELECTED DAY
+// ========================================
+
+function renderCalendarSelectedDay() {
+
+  if (
+    !selectedCalendarDate
+  ) {
+
+    calendarSelectedDate.textContent =
+      "Select a date";
+
+    calendarSelectedCount.textContent =
+      "0 movements";
+
+    calendarDaySummary.innerHTML =
+      "";
+
+    calendarDayList.innerHTML = `
+      <div class="calendar-empty">
+        เลือกวันที่เพื่อดู Stock Movement
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  const movements =
+    calendarMovements.filter(
+      movement =>
+        getBangkokDateKey(
+          movement.created_at
+        ) ===
+        selectedCalendarDate
+    );
+
+
+  const date =
+    new Date(
+      `${selectedCalendarDate}T12:00:00+07:00`
+    );
+
+
+  const dateText =
+    new Intl.DateTimeFormat(
+      "en-GB",
+      {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+        timeZone: "Asia/Bangkok"
+      }
+    ).format(
+      date
+    );
+
+
+  calendarSelectedDate.textContent =
+    dateText;
+
+  calendarSelectedCount.textContent =
+    `${movements.length} movement${
+      movements.length === 1
+        ? ""
+        : "s"
+    }`;
+
+
+  let stockIn = 0;
+  let stockOut = 0;
+
+  movements.forEach(
+    movement => {
+
+      const quantity =
+        Number(
+          movement.quantity
+        ) || 0;
+
+      if (
+        movement.movement_type ===
+        "IN"
+      ) {
+
+        stockIn +=
+          quantity;
+
+      } else {
+
+        stockOut +=
+          quantity;
+
+      }
+
+    }
+  );
+
+
+  calendarDaySummary.innerHTML = `
+
+    <div class="calendar-summary-box">
+
+      <div class="calendar-summary-label">
+        STOCK IN
+      </div>
+
+      <div
+        class="
+          calendar-summary-value
+          in
+        "
+      >
+        +${formatNumber(stockIn)}
+      </div>
+
+    </div>
+
+
+    <div class="calendar-summary-box">
+
+      <div class="calendar-summary-label">
+        STOCK OUT
+      </div>
+
+      <div
+        class="
+          calendar-summary-value
+          out
+        "
+      >
+        -${formatNumber(stockOut)}
+      </div>
+
+    </div>
+
+  `;
+
+
+  if (!movements.length) {
+
+    calendarDayList.innerHTML = `
+      <div class="calendar-empty">
+        ไม่มี Stock Movement ในวันนี้
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  calendarDayList.innerHTML =
+    movements
+      .map(movement => {
+
+        const isIn =
+          movement.movement_type ===
+          "IN";
+
+        const typeClass =
+          isIn
+            ? "in"
+            : "out";
+
+        const sign =
+          isIn
+            ? "+"
+            : "-";
+
+        const product =
+          movement.products;
+
+        const quantity =
+          formatNumber(
+            Number(
+              movement.quantity
+            ) || 0
+          );
+
+        const note =
+          movement.note
+            ? ` · ${escapeHtml(
+                movement.note
+              )}`
+            : "";
+
+        return `
+
+          <div
+            class="calendar-day-movement"
+          >
+
+            <div
+              class="calendar-day-movement-main"
+            >
+
+              <div
+                class="
+                  calendar-day-type
+                  ${typeClass}
+                "
+              >
+                ${
+                  isIn
+                    ? "IN"
+                    : "OUT"
+                }
+              </div>
+
+
+              <div
+                class="calendar-day-info"
+              >
+
+                <div
+                  class="calendar-day-name"
+                >
+                  ${escapeHtml(
+                    product?.name_en ||
+                    "Unknown Product"
+                  )}
+                </div>
+
+
+                <div
+                  class="calendar-day-meta"
+                >
+                  ITEM ${
+                    String(
+                      product?.item_no ??
+                      ""
+                    ).padStart(2,"0")
+                  }
+                  ·
+                  ${formatBangkokTime(
+                    movement.created_at
+                  )}
+                  ${note}
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div
+              class="
+                calendar-day-quantity
+                ${typeClass}
+              "
+            >
+              ${sign}${quantity}
+            </div>
+
+          </div>
+
+        `;
+
+      })
+      .join("");
+
+}
+
+
+// ========================================
+// CALENDAR NAVIGATION
+// ========================================
+
+calendarPrev.addEventListener(
+  "click",
+  async () => {
+
+    calendarDate.setMonth(
+      calendarDate.getMonth() - 1
+    );
+
+    selectedCalendarDate =
+      null;
+
+    await loadCalendarMovements();
+
+  }
+);
+
+
+calendarNext.addEventListener(
+  "click",
+  async () => {
+
+    calendarDate.setMonth(
+      calendarDate.getMonth() + 1
+    );
+
+    selectedCalendarDate =
+      null;
+
+    await loadCalendarMovements();
+
+  }
+);
+
+
+// ========================================
 // DASHBOARD NAVIGATION
 // ========================================
 
@@ -4884,27 +5200,27 @@ function showDashboardPage() {
     }
   );
 
-
   stockPage.style.display =
     "none";
 
-
   dashboardPage.style.display =
     "block";
-
-
-  loadDashboard();
-
 
   setActiveNav(
     navDashboard
   );
 
-
   window.scrollTo({
     top: 0,
     behavior: "smooth"
   });
+
+
+  // Dashboard data
+  loadDashboard();
+
+  // Calendar
+  loadCalendarMovements();
 
 }
 
@@ -4939,13 +5255,14 @@ async function refreshDashboard() {
 
   await refreshStock();
 
-
   if (
     dashboardPage.style.display !==
     "none"
   ) {
 
     await loadDashboard();
+
+    await loadCalendarMovements();
 
   }
 
