@@ -9146,14 +9146,15 @@ async function refreshDashboard() {
 })();
 
 // ========================================
-// BALENRISTA AI STOCK ASSISTANT
+// BALENRISTA AI STOCK ANALYST
 // ========================================
 
 let aiConversationProduct = null;
+let aiConversationRange = null;
 
 
 // ========================================
-// AI TEXT NORMALIZER
+// TEXT NORMALIZER
 // ========================================
 
 function normalizeAIText(text) {
@@ -9178,42 +9179,7 @@ function compactAIText(text) {
 
 
 // ========================================
-// AI DATE HELPERS
-// ========================================
-
-function getAIBangkokDate(date = new Date()) {
-
-  return new Intl.DateTimeFormat(
-    "en-CA",
-    {
-      timeZone: "Asia/Bangkok",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit"
-    }
-  ).format(date);
-
-}
-
-
-function isAIToday(dateString) {
-
-  if (!dateString) {
-    return false;
-  }
-
-  return (
-    getAIBangkokDate(
-      new Date(dateString)
-    ) ===
-    getAIBangkokDate()
-  );
-
-}
-
-
-// ========================================
-// AI PRODUCT ALIASES
+// PRODUCT ALIASES
 // ========================================
 
 const aiProductAliases = {
@@ -9223,16 +9189,13 @@ const aiProductAliases = {
     "ขวดกาแฟ",
     "ขวดแยก",
     "bottled coffee",
-    "coffee bottle",
-    "bottle coffee"
+    "coffee bottle"
   ],
 
   2: [
-    "อโรม่า กล่องแดง",
     "อโรม่าแดง",
     "อโรม่า แดง",
-    "aroma กล่องแดง",
-    "aroma แดง",
+    "อโรม่า กล่องแดง",
     "aroma red",
     "liquid creamer",
     "creamer"
@@ -9243,28 +9206,23 @@ const aiProductAliases = {
     "นมข้นหวาน",
     "คาเนชั่น",
     "carnation",
-    "condensed milk",
-    "sweetened condensed milk"
+    "condensed milk"
   ],
 
   4: [
-    "อโรม่า กล่องเหลือง",
     "อโรม่าเหลือง",
     "อโรม่า เหลือง",
-    "aroma กล่องเหลือง",
-    "aroma เหลือง",
+    "อโรม่า กล่องเหลือง",
     "aroma yellow",
     "unsweetened milk"
   ],
 
   5: [
     "น้ำผึ้ง",
-    "น้ำผึ้งดอยคำ",
     "ดอยคำ",
-    "doikhum",
-    "doi kham",
-    "doi kham honey",
-    "honey"
+    "น้ำผึ้งดอยคำ",
+    "honey",
+    "doi kham"
   ],
 
   6: [
@@ -9282,7 +9240,7 @@ const aiProductAliases = {
     "ฝายกดื่ม",
     "ฝา 98",
     "ฝา 98mm",
-    "ฝาแก้ว 98",
+    "ฝาแก้ว",
     "sip lid",
     "98mm lid"
   ],
@@ -9290,7 +9248,6 @@ const aiProductAliases = {
   8: [
     "มัจฉะ",
     "มัทฉะ",
-    "มัทฉะ ชาตรามือ",
     "มัจฉะ ชาตรามือ",
     "matcha",
     "matcha green tea"
@@ -9305,30 +9262,26 @@ const aiProductAliases = {
   10: [
     "ชาไทย",
     "ชาไทย ชาตรามือ",
-    "thai tea",
-    "thai tea chatramue"
+    "thai tea"
   ],
 
   11: [
     "ชาเอิร์ลเกรย์",
     "เอิร์ลเกรย์",
     "earl grey",
-    "twinings",
-    "twinings earl grey"
+    "twinings"
   ],
 
   12: [
-    "ไซรัปยูสุ",
-    "ไซรัปส้มยูสุ",
-    "ส้มยูสุ",
     "ยูสุ",
+    "ส้มยูสุ",
+    "ไซรัปส้มยูสุ",
     "yuzu",
     "yuzu syrup"
   ],
 
   13: [
     "ไซรัปส้ม",
-    "ส้ม",
     "orange syrup",
     "syrup orange"
   ],
@@ -9336,7 +9289,6 @@ const aiProductAliases = {
   14: [
     "โฮจิฉะ",
     "โฮจิฉะ คาวามิ",
-    "คาวามิ โฮจิฉะ",
     "houjicha",
     "houjicha kawami"
   ],
@@ -9351,8 +9303,6 @@ const aiProductAliases = {
   16: [
     "ถุงเดี่ยว",
     "ถุงใส่แก้วเดี่ยว",
-    "ถุงใส่แก้ว",
-    "ถุงแก้วเดี่ยว",
     "single cup",
     "single-cup carrier"
   ],
@@ -9360,32 +9310,27 @@ const aiProductAliases = {
   17: [
     "ไซรัปมะพร้าว",
     "มะพร้าว",
-    "coconut syrup",
-    "syrup coconut"
+    "coconut syrup"
   ],
 
   18: [
     "ไซรัปสตอเบอรี่",
-    "ไซรัปสตรอเบอรี่",
     "สตอเบอรี่",
     "สตรอเบอรี่",
-    "strawberry syrup",
-    "syrup strawberry"
+    "strawberry syrup"
   ],
 
   19: [
-    "หลอดงอ 5",
     "หลอด 5",
     "หลอด 5mm",
-    "flexible straw 5",
+    "หลอดงอ 5",
     "straw 5"
   ],
 
   20: [
-    "หลอดงอ 8",
     "หลอด 8",
     "หลอด 8mm",
-    "flexible straw 8",
+    "หลอดงอ 8",
     "straw 8"
   ],
 
@@ -9401,17 +9346,15 @@ const aiProductAliases = {
     "ไซรัปสับปะรด",
     "สัปปะรด",
     "สับปะรด",
-    "pineapple syrup",
-    "syrup pineapple"
+    "pineapple syrup"
   ],
 
   23: [
-    "ถุงใส่แก้วคู่",
     "ถุงแก้วคู่",
+    "ถุงใส่แก้วคู่",
     "ถุง 2 แก้ว",
     "2 cup",
-    "2-cup carrier",
-    "carrier bag"
+    "2-cup carrier"
   ],
 
   24: [
@@ -9419,15 +9362,13 @@ const aiProductAliases = {
     "ฝาฮาฟยกดื่ม",
     "ฝาครึ่งโดม",
     "half dome",
-    "half-dome",
-    "half dome sip lid"
+    "half-dome"
   ],
 
   25: [
     "ไซรัปลิ้นจี่",
     "ลิ้นจี่",
-    "lychee syrup",
-    "syrup lychee"
+    "lychee syrup"
   ],
 
   26: [
@@ -9440,8 +9381,7 @@ const aiProductAliases = {
   27: [
     "ส้มดอง",
     "mandarin",
-    "mandarin oranges",
-    "orange can"
+    "mandarin oranges"
   ],
 
   28: [
@@ -9453,7 +9393,6 @@ const aiProductAliases = {
   29: [
     "อูจิ",
     "อูจิมัจฉะ",
-    "มัจฉะคาวามิ",
     "อูจิ มัจฉะคาวามิ",
     "uji matcha",
     "uji matcha kawami"
@@ -9462,7 +9401,6 @@ const aiProductAliases = {
   30: [
     "น้ำช่อดอกมะพร้าว",
     "ช่อดอกมะพร้าว",
-    "น้ำช่อมะพร้าว",
     "coconut flower",
     "coconut blossom"
   ],
@@ -9472,7 +9410,6 @@ const aiProductAliases = {
     "ปลอกแก้ว",
     "ที่คาดแก้ว",
     "cup sleeve",
-    "cup-sleeve",
     "sleeve"
   ]
 
@@ -9496,36 +9433,22 @@ function findAIProduct(question) {
   }
 
 
-  // --------------------------------------
-  // 1. SKU
-  // --------------------------------------
-
+  // SKU
   const skuMatch =
-    allProducts.find(product => {
-
-      const sku =
-        normalizeAIText(
+    allProducts.find(product =>
+      compact.includes(
+        compactAIText(
           product.sku
-        );
-
-      return (
-        sku &&
-        compact.includes(
-          compactAIText(sku)
         )
-      );
-
-    });
+      )
+    );
 
   if (skuMatch) {
     return skuMatch;
   }
 
 
-  // --------------------------------------
-  // 2. ITEM NUMBER
-  // --------------------------------------
-
+  // ITEM NUMBER
   const itemMatch =
     allProducts.find(product => {
 
@@ -9546,10 +9469,7 @@ function findAIProduct(question) {
   }
 
 
-  // --------------------------------------
-  // 3. EXACT PRODUCT NAME
-  // --------------------------------------
-
+  // EXACT NAME
   const exactMatches =
     allProducts.filter(product => {
 
@@ -9573,68 +9493,71 @@ function findAIProduct(question) {
 
   if (exactMatches.length) {
 
-    return exactMatches
-      .sort((a, b) => {
+    return exactMatches.sort(
+      (a,b) => {
 
-        const aLength =
+        const aLen =
           Math.max(
             a.name_th.length,
             a.name_en.length
           );
 
-        const bLength =
+        const bLen =
           Math.max(
             b.name_th.length,
             b.name_en.length
           );
 
-        return bLength - aLength;
+        return bLen - aLen;
 
-      })[0];
+      }
+    )[0];
 
   }
 
 
-  // --------------------------------------
-  // 4. ALIASES
-  // --------------------------------------
-
+  // ALIASES
   const aliasMatches = [];
 
-  for (const product of allProducts) {
+
+  for (
+    const product of allProducts
+  ) {
 
     const aliases =
       aiProductAliases[
         product.item_no
       ] || [];
 
-    let bestLength = 0;
+    let score = 0;
 
-    for (const alias of aliases) {
 
-      const aliasText =
+    aliases.forEach(alias => {
+
+      const a =
         compactAIText(alias);
 
       if (
-        aliasText &&
-        compact.includes(aliasText)
+        a &&
+        compact.includes(a)
       ) {
 
-        bestLength =
+        score =
           Math.max(
-            bestLength,
-            aliasText.length
+            score,
+            a.length
           );
 
       }
 
-    }
+    });
 
-    if (bestLength > 0) {
+
+    if (score > 0) {
 
       aliasMatches.push({
         product,
-        score: bestLength
+        score
       });
 
     }
@@ -9645,114 +9568,11 @@ function findAIProduct(question) {
   if (aliasMatches.length) {
 
     aliasMatches.sort(
-      (a, b) =>
-        b.score - a.score
-    );
-
-    return aliasMatches[0].product;
-
-  }
-
-
-  // --------------------------------------
-  // 5. DISTINCTIVE WORD MATCH
-  // --------------------------------------
-
-  const stopWords = new Set([
-
-    "เหลือ",
-    "เท่าไหร่",
-    "เท่าไร",
-    "กี่",
-    "มี",
-    "ไหม",
-    "มั้ย",
-    "อะไร",
-    "ไหน",
-    "ของ",
-    "สินค้า",
-    "สต็อก",
-    "stock",
-    "วันนี้",
-    "เมื่อวาน",
-    "ตอนนี้",
-    "เท่าไรครับ",
-    "เท่าไหร่ครับ",
-    "ครับ",
-    "ค่ะ",
-    "คะ",
-    "หน่อย",
-    "แล้ว",
-    "ล่ะ",
-    "ละ",
-    "ไหมครับ",
-    "มั้ยครับ"
-
-  ]);
-
-
-  const words =
-    q
-      .split(/[\s,!?]+/)
-      .filter(word =>
-        word.length >= 2 &&
-        !stopWords.has(word)
-      );
-
-
-  const scoredProducts =
-    allProducts.map(product => {
-
-      const text =
-        normalizeAIText(
-          product.name_th +
-          " " +
-          product.name_en
-        );
-
-      let score = 0;
-
-      for (const word of words) {
-
-        if (
-          text.includes(word)
-        ) {
-
-          score +=
-            Math.min(
-              word.length,
-              10
-            );
-
-        }
-
-      }
-
-      return {
-        product,
-        score
-      };
-
-    })
-    .filter(item =>
-      item.score > 0
-    )
-    .sort(
       (a,b) =>
         b.score - a.score
     );
 
-
-  if (
-    scoredProducts.length &&
-    (
-      scoredProducts.length === 1 ||
-      scoredProducts[0].score >
-      scoredProducts[1].score
-    )
-  ) {
-
-    return scoredProducts[0].product;
+    return aliasMatches[0].product;
 
   }
 
@@ -9763,7 +9583,7 @@ function findAIProduct(question) {
 
 
 // ========================================
-// GET CURRENT STOCK
+// CURRENT STOCK
 // ========================================
 
 function getAIStock(product) {
@@ -9784,7 +9604,9 @@ function getAIStock(product) {
 
   const minStock =
     Number(
-      product.min_stock ?? 5
+      stockData?.min_stock ??
+      product.min_stock ??
+      5
     );
 
   let status = "NORMAL";
@@ -9806,79 +9628,16 @@ function getAIStock(product) {
 
 
 // ========================================
-// STOCK STATUS TEXT
+// MOVEMENTS
 // ========================================
 
-function getAIStockStatusText(info) {
+async function getAIMovements(
+  startISO = null,
+  endISO = null
+) {
 
-  if (!info) {
-    return "";
-  }
-
-  if (info.status === "OUT") {
-    return "🔴 OUT OF STOCK";
-  }
-
-  if (info.status === "LOW") {
-    return "🟠 LOW STOCK";
-  }
-
-  return "🟢 NORMAL";
-
-}
-
-
-// ========================================
-// LOW STOCK
-// ========================================
-
-function getAILowStock() {
-
-  return allProducts
-    .map(product => {
-
-      const info =
-        getAIStock(product);
-
-      return {
-        product,
-        ...info
-      };
-
-    })
-    .filter(item =>
-      item.stock <=
-      item.minStock
-    )
-    .sort(
-      (a,b) => {
-
-        if (a.stock !== b.stock) {
-          return a.stock - b.stock;
-        }
-
-        return (
-          a.product.item_no -
-          b.product.item_no
-        );
-
-      }
-    );
-
-}
-
-
-// ========================================
-// GET MOVEMENTS
-// ========================================
-
-async function getAIMovements() {
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
+  let query =
+    supabaseClient
       .from("stock_movements")
       .select(
         "id, product_id, movement_type, quantity, note, created_at"
@@ -9889,7 +9648,37 @@ async function getAIMovements() {
           ascending: false
         }
       )
-      .limit(500);
+      .limit(1000);
+
+
+  if (startISO) {
+
+    query =
+      query.gte(
+        "created_at",
+        startISO
+      );
+
+  }
+
+
+  if (endISO) {
+
+    query =
+      query.lt(
+        "created_at",
+        endISO
+      );
+
+  }
+
+
+  const {
+    data,
+    error
+  } =
+    await query;
+
 
   if (error) {
 
@@ -9913,130 +9702,566 @@ async function getAIMovements() {
 
 function getAIMovementProduct(row) {
 
-  if (!row) {
-    return null;
-  }
+  return allProducts.find(
+    product =>
+      product.id ===
+      row.product_id
+  ) || null;
 
-  return (
-    allProducts.find(
-      product =>
-        product.id === row.product_id
-    ) ||
-    null
+}
+
+
+// ========================================
+// BANGKOK DATE
+// ========================================
+
+function getAIDateKey(
+  date
+) {
+
+  return new Intl.DateTimeFormat(
+    "en-CA",
+    {
+      timeZone: "Asia/Bangkok",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }
+  ).format(
+    new Date(date)
   );
 
 }
 
 
 // ========================================
-// FILTER TODAY
+// RANGE
 // ========================================
 
-function getAITodayMovements(
-  movements,
-  product = null
+function getAIRange(
+  question
 ) {
 
-  return movements.filter(row => {
+  const q =
+    normalizeAIText(question);
 
-    if (
-      !isAIToday(
-        row.created_at
-      )
-    ) {
-      return false;
-    }
+  const now =
+    new Date();
 
-    if (
-      product &&
-      row.product_id !== product.id
-    ) {
-      return false;
-    }
 
-    return true;
+  // TODAY
+  if (
+    q.includes("วันนี้") ||
+    q.includes("today")
+  ) {
 
-  });
+    const key =
+      getAIDateKey(now);
+
+    const start =
+      new Date(
+        `${key}T00:00:00+07:00`
+      );
+
+    const end =
+      new Date(
+        start.getTime() +
+        86400000
+      );
+
+    return {
+      key: "today",
+      label: "วันนี้",
+      start,
+      end
+    };
+
+  }
+
+
+  // YESTERDAY
+  if (
+    q.includes("เมื่อวาน") ||
+    q.includes("yesterday")
+  ) {
+
+    const key =
+      getAIDateKey(
+        new Date(
+          now.getTime() -
+          86400000
+        )
+      );
+
+    const start =
+      new Date(
+        `${key}T00:00:00+07:00`
+      );
+
+    const end =
+      new Date(
+        start.getTime() +
+        86400000
+      );
+
+    return {
+      key: "yesterday",
+      label: "เมื่อวาน",
+      start,
+      end
+    };
+
+  }
+
+
+  // 7 DAYS
+  if (
+    q.includes("7 วัน") ||
+    q.includes("7วันที่ผ่านมา") ||
+    q.includes("7 วันที่ผ่านมา") ||
+    q.includes("7 days") ||
+    q.includes("last 7 days") ||
+    q.includes("สัปดาห์")
+  ) {
+
+    return {
+      key: "7d",
+      label: "7 วันที่ผ่านมา",
+      start:
+        new Date(
+          now.getTime() -
+          6 * 86400000
+        ),
+      end: now
+    };
+
+  }
+
+
+  // 30 DAYS
+  if (
+    q.includes("30 วัน") ||
+    q.includes("30วันที่ผ่านมา") ||
+    q.includes("30 วันที่ผ่านมา") ||
+    q.includes("30 days") ||
+    q.includes("last 30 days")
+  ) {
+
+    return {
+      key: "30d",
+      label: "30 วันที่ผ่านมา",
+      start:
+        new Date(
+          now.getTime() -
+          29 * 86400000
+        ),
+      end: now
+    };
+
+  }
+
+
+  // LAST MONTH
+  if (
+    q.includes("เดือนที่แล้ว") ||
+    q.includes("เดือนก่อน") ||
+    q.includes("last month")
+  ) {
+
+    const year =
+      now.getFullYear();
+
+    const month =
+      now.getMonth();
+
+    const start =
+      new Date(
+        year,
+        month - 1,
+        1,
+        0,
+        0,
+        0
+      );
+
+    const end =
+      new Date(
+        year,
+        month,
+        1,
+        0,
+        0,
+        0
+      );
+
+    return {
+      key: "last_month",
+      label: "เดือนที่แล้ว",
+      start,
+      end
+    };
+
+  }
+
+
+  // THIS MONTH
+  if (
+    q.includes("เดือนนี้") ||
+    q.includes("this month")
+  ) {
+
+    const start =
+      new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        1,
+        0,
+        0,
+        0,
+        0
+      );
+
+    return {
+      key: "month",
+      label: "เดือนนี้",
+      start,
+      end: now
+    };
+
+  }
+
+
+  return null;
 
 }
 
 
 // ========================================
-// FORMAT MOVEMENT LIST
+// SUM
 // ========================================
 
-function formatAIMovementList(
+function sumAIMovement(
+  rows,
+  type
+) {
+
+  return rows
+    .filter(row =>
+      String(
+        row.movement_type
+      ).toUpperCase() ===
+      type
+    )
+    .reduce(
+      (sum,row) =>
+        sum +
+        Number(
+          row.quantity || 0
+        ),
+      0
+    );
+
+}
+
+
+// ========================================
+// TOP OUT
+// ========================================
+
+function getAITopOut(
   rows,
   limit = 10
 ) {
 
-  return rows
-    .slice(0, limit)
-    .map(row => {
+  const totals = {};
+
+
+  rows
+    .filter(row =>
+      String(
+        row.movement_type
+      ).toUpperCase() ===
+      "OUT"
+    )
+    .forEach(row => {
 
       const product =
         getAIMovementProduct(row);
 
-      const type =
-        String(
-          row.movement_type || ""
-        ).toUpperCase();
+      if (!product) {
+        return;
+      }
 
-      const icon =
-        type === "IN"
-          ? "🟢"
-          : "🔴";
 
-      const name =
-        product
-          ? product.name_th
-          : "ไม่ทราบสินค้า";
+      if (!totals[product.id]) {
 
-      const unit =
-        product
-          ? product.unit
-          : "";
+        totals[product.id] = {
+          product,
+          quantity: 0
+        };
 
-      const note =
-        row.note
-          ? ` — ${row.note}`
-          : "";
+      }
 
-      return `
-        ${icon}
-        <strong>${name}</strong>
-        — ${type}
-        ${row.quantity} ${unit}
-        ${note}
-      `;
 
-    })
-    .join("<br>");
+      totals[product.id].quantity +=
+        Number(
+          row.quantity || 0
+        );
+
+    });
+
+
+  return Object.values(totals)
+    .sort(
+      (a,b) =>
+        b.quantity -
+        a.quantity
+    )
+    .slice(
+      0,
+      limit
+    );
 
 }
 
 
 // ========================================
-// PRODUCT STOCK RESPONSE
+// TREND
 // ========================================
 
-function buildAIProductStockResponse(
+function getAITrend(
+  rows,
+  product
+) {
+
+  if (!product) {
+    return null;
+  }
+
+
+  const now =
+    new Date();
+
+  const midpoint =
+    new Date(
+      now.getTime() -
+      3.5 * 86400000
+    );
+
+
+  const before =
+    rows.filter(row => {
+
+      const d =
+        new Date(
+          row.created_at
+        );
+
+      return d < midpoint;
+
+    });
+
+
+  const after =
+    rows.filter(row => {
+
+      const d =
+        new Date(
+          row.created_at
+        );
+
+      return d >= midpoint;
+
+    });
+
+
+  const beforeOut =
+    sumAIMovement(
+      before,
+      "OUT"
+    );
+
+  const afterOut =
+    sumAIMovement(
+      after,
+      "OUT"
+    );
+
+
+  let trend =
+    "คงที่";
+
+
+  if (
+    afterOut >
+    beforeOut
+  ) {
+
+    trend =
+      "เพิ่มขึ้น";
+
+  }
+  else if (
+    afterOut <
+    beforeOut
+  ) {
+
+    trend =
+      "ลดลง";
+
+  }
+
+
+  return {
+    beforeOut,
+    afterOut,
+    trend
+  };
+
+}
+
+
+// ========================================
+// SMART STOCK WATCH
+// ========================================
+
+async function getAISmartWatch() {
+
+  const now =
+    new Date();
+
+  const start =
+    new Date(
+      now.getTime() -
+      30 * 86400000
+    );
+
+
+  const movements =
+    await getAIMovements(
+      start.toISOString(),
+      now.toISOString()
+    );
+
+
+  return allProducts
+    .map(product => {
+
+      const info =
+        getAIStock(product);
+
+      const rows =
+        movements.filter(
+          row =>
+            row.product_id ===
+            product.id
+        );
+
+
+      const out =
+        sumAIMovement(
+          rows,
+          "OUT"
+        );
+
+
+      const inQty =
+        sumAIMovement(
+          rows,
+          "IN"
+        );
+
+
+      const movementCount =
+        rows.length;
+
+
+      let priority = 0;
+
+
+      if (
+        info.stock <= 0
+      ) {
+
+        priority += 100;
+
+      }
+      else if (
+        info.stock <=
+        info.minStock
+      ) {
+
+        priority += 60;
+
+      }
+
+
+      if (out > 0) {
+
+        priority +=
+          Math.min(
+            out,
+            40
+          );
+
+      }
+
+
+      if (
+        movementCount >= 5
+      ) {
+
+        priority += 10;
+
+      }
+
+
+      return {
+        product,
+        ...info,
+        out,
+        inQty,
+        movementCount,
+        priority
+      };
+
+    })
+    .filter(item =>
+      item.priority > 0
+    )
+    .sort(
+      (a,b) =>
+        b.priority -
+        a.priority
+    );
+
+}
+
+
+// ========================================
+// FORMAT STOCK
+// ========================================
+
+function formatAIStock(
   product
 ) {
 
   const info =
     getAIStock(product);
 
+
   if (!info) {
-
-    return `
-      ไม่พบข้อมูลสต็อกของสินค้านี้ครับ 😅
-    `;
-
+    return "";
   }
 
-  const statusText =
-    getAIStockStatusText(info);
+
+  const status =
+    info.status === "OUT"
+      ? "🔴 OUT OF STOCK"
+      : info.status === "LOW"
+        ? "🟠 LOW STOCK"
+        : "🟢 NORMAL";
+
 
   return `
     <strong>${product.name_th}</strong><br>
@@ -10053,14 +10278,14 @@ function buildAIProductStockResponse(
 
     <br><br>
 
-    ${statusText}
+    ${status}
   `;
 
 }
 
 
 // ========================================
-// ANSWER AI
+// ANSWER ENGINE
 // ========================================
 
 async function answerAIQuestion(
@@ -10076,89 +10301,37 @@ async function answerAIQuestion(
   if (!q) {
 
     return `
-      ลองถามผมเรื่องสต็อกได้เลยครับ 👋
+      ลองถามผมเรื่อง Stock ได้เลยครับ 👋
     `;
 
   }
 
 
-  // =====================================
-  // INTENT DETECTION
-  // =====================================
-
-  const isToday =
-    q.includes("วันนี้") ||
-    q.includes("today");
-
-  const isLatest =
-    q.includes("ล่าสุด") ||
-    q.includes("รายการล่าสุด") ||
-    q.includes("recent") ||
-    q.includes("latest");
-
-  const isLowStock =
-    q.includes("ใกล้หมด") ||
-    q.includes("เหลือน้อย") ||
-    q.includes("low stock");
-
-  const isOutOfStock =
-    q.includes("หมดแล้ว") ||
-    q.includes("หมดเลย") ||
-    q.includes("หมด");
-
-  const isStockQuestion =
-    q.includes("เหลือ") ||
-    q.includes("คงเหลือ") ||
-    q.includes("สต็อก") ||
-    q.includes("stock") ||
-    q.includes("มีไหม") ||
-    q.includes("กี่") ||
-    q.includes("how much") ||
-    q.includes("how many");
-
-  const isOutMovement =
-    q.includes("stock out") ||
-    q.includes("stockout") ||
-    q.includes("out") ||
-    q.includes("ออก") ||
-    q.includes("เบิก");
-
-  const isInMovement =
-    q.includes("stock in") ||
-    q.includes("stockin") ||
-    q.includes("เข้า") ||
-    q.includes("รับเข้า");
-
-
-  // =====================================
-  // FIND PRODUCT FIRST
-  // =====================================
+  // --------------------------------------
+  // FIND PRODUCT
+  // --------------------------------------
 
   let product =
     findAIProduct(q);
 
 
-  // =====================================
-  // FOLLOW-UP QUESTION
-  // =====================================
+  // --------------------------------------
+  // DETECT FOLLOW-UP
+  // --------------------------------------
 
-  const isFollowUp =
+  const explicitFollowUp =
     q.includes("ตัวนี้") ||
     q.includes("อันนี้") ||
     q.includes("สินค้านี้") ||
     q.includes("ตัวเดิม") ||
     q.includes("อันเดิม") ||
     q.includes("แล้วตัวนี้") ||
-    q.includes("แล้วอันนี้") ||
-    q === "แล้วล่ะ" ||
-    q === "แล้วล่ะ?" ||
-    q === "แล้วตัวนี้ล่ะ" ||
-    q === "แล้วอันนี้ล่ะ";
+    q.includes("แล้วอันนี้");
 
 
   if (
     !product &&
-    isFollowUp &&
+    explicitFollowUp &&
     aiConversationProduct
   ) {
 
@@ -10168,35 +10341,181 @@ async function answerAIQuestion(
   }
 
 
-  // =====================================
-  // LOW / OUT STOCK LIST
-  // =====================================
+  // --------------------------------------
+  // INTENT
+  // --------------------------------------
 
-  if (
-    isLowStock ||
-    (
-      isOutOfStock &&
-      !product
-    )
-  ) {
+  const range =
+    getAIRange(q);
+
+
+  const asksTop =
+    q.includes("เยอะที่สุด") ||
+    q.includes("เยอะสุด") ||
+    q.includes("มากที่สุด") ||
+    q.includes("มากสุด") ||
+    q.includes("top") ||
+    q.includes("ใช้เยอะ");
+
+
+  const asksTrend =
+    q.includes("แนวโน้ม") ||
+    q.includes("trend") ||
+    q.includes("เพิ่มขึ้น") ||
+    q.includes("ลดลง") ||
+    q.includes("ใช้เยอะขึ้น") ||
+    q.includes("ใช้ลดลง");
+
+
+  const asksWatch =
+    q.includes("ควรจับตา") ||
+    q.includes("ต้องเช็ก") ||
+    q.includes("น่าห่วง") ||
+    q.includes("น่ากังวล") ||
+    q.includes("watch") ||
+    q.includes("ระวัง");
+
+
+  const asksOut =
+    q.includes("stock out") ||
+    q.includes("stockout") ||
+    q.includes("ออกไป") ||
+    q.includes("เบิก") ||
+    q.includes("ใช้ไป") ||
+    q.includes("ออก");
+
+
+  const asksIn =
+    q.includes("stock in") ||
+    q.includes("stockin") ||
+    q.includes("เข้า") ||
+    q.includes("รับเข้า");
+
+
+  const asksStock =
+    q.includes("เหลือ") ||
+    q.includes("คงเหลือ") ||
+    q.includes("สต็อก") ||
+    q.includes("stock") ||
+    q.includes("มีไหม") ||
+    q.includes("กี่") ||
+    q.includes("how much") ||
+    q.includes("how many");
+
+
+  const asksLow =
+    q.includes("ใกล้หมด") ||
+    q.includes("เหลือน้อย") ||
+    q.includes("low stock");
+
+
+  const asksOutOfStock =
+    q.includes("หมดแล้ว") ||
+    q.includes("หมดเลย");
+
+
+  // --------------------------------------
+  // SMART WATCH
+  // --------------------------------------
+
+  if (asksWatch) {
 
     const items =
-      getAILowStock();
+      await getAISmartWatch();
 
 
     if (!items.length) {
 
       return `
-        🟢 ตอนนี้ไม่มีสินค้าที่ต่ำกว่า
-        Minimum Stock ครับ
+        🟢 ตอนนี้ยังไม่มีรายการ
+        ที่ต้องจับตาจากข้อมูล Stock ครับ
       `;
 
     }
 
 
-    const out =
+    const list =
       items
-        .slice(0, 15)
+        .slice(0,10)
+        .map(item => {
+
+          const p =
+            item.product;
+
+          const status =
+            item.stock <= 0
+              ? "🔴 หมดแล้ว"
+              : item.stock <= item.minStock
+                ? "🟠 ต่ำกว่า Minimum"
+                : "📉 มี Movement";
+
+          return `
+            ${status}
+            <strong>${p.name_th}</strong>
+            — ${item.stock} ${p.unit}
+            <br>
+            <small>
+              OUT 30 วัน:
+              ${item.out} ${p.unit}
+              · Movement:
+              ${item.movementCount}
+            </small>
+          `;
+
+        })
+        .join("<br>");
+
+
+    return `
+      <strong>🚨 Stock Watch</strong>
+      <br><br>
+      ${list}
+    `;
+
+  }
+
+
+  // --------------------------------------
+  // LOW / OUT STOCK
+  // --------------------------------------
+
+  if (
+    asksLow ||
+    (
+      asksOutOfStock &&
+      !product
+    )
+  ) {
+
+    const items =
+      allProducts
+        .map(p => ({
+          product: p,
+          ...getAIStock(p)
+        }))
+        .filter(item =>
+          asksOutOfStock
+            ? item.stock <= 0
+            : item.stock <= item.minStock
+        )
+        .sort(
+          (a,b) =>
+            a.stock -
+            b.stock
+        );
+
+
+    if (!items.length) {
+
+      return `
+        🟢 ตอนนี้ไม่มีสินค้าที่ตรงเงื่อนไขครับ
+      `;
+
+    }
+
+
+    const list =
+      items
         .map(item => {
 
           const p =
@@ -10219,89 +10538,149 @@ async function answerAIQuestion(
 
 
     return `
-      <strong>Stock Alert</strong><br><br>
-      ${out}
+      <strong>Stock Alert</strong>
+      <br><br>
+      ${list}
     `;
 
   }
 
 
-  // =====================================
-  // TODAY MOVEMENTS
-  // =====================================
+  // --------------------------------------
+  // HISTORICAL DATA
+  // --------------------------------------
 
-  if (isToday) {
+  if (range) {
+
+    aiConversationRange =
+      range;
+
 
     const movements =
-      await getAIMovements();
-
-    const todayRows =
-      getAITodayMovements(
-        movements,
-        product
+      await getAIMovements(
+        range.start.toISOString(),
+        range.end.toISOString()
       );
 
 
-    // -----------------------------------
-    // PRODUCT + TODAY
-    // -----------------------------------
-
+    // PRODUCT
     if (product) {
 
       aiConversationProduct =
         product;
 
 
-      if (!todayRows.length) {
+      const rows =
+        movements.filter(
+          row =>
+            row.product_id ===
+            product.id
+        );
+
+
+      const totalIn =
+        sumAIMovement(
+          rows,
+          "IN"
+        );
+
+
+      const totalOut =
+        sumAIMovement(
+          rows,
+          "OUT"
+        );
+
+
+      // TREND
+      if (asksTrend) {
+
+        const trend =
+          getAITrend(
+            rows,
+            product
+          );
+
 
         return `
           <strong>${product.name_th}</strong><br>
-          วันนี้ยังไม่มี Stock Movement ของสินค้านี้ครับ
+          ${product.name_en}
+
+          <br><br>
+
+          📈 ${range.label}
+
+          <br><br>
+
+          Stock Out ช่วงก่อน:
+          <strong>${trend.beforeOut}</strong>
+          ${product.unit}
+
+          <br>
+
+          Stock Out ช่วงหลัง:
+          <strong>${trend.afterOut}</strong>
+          ${product.unit}
+
+          <br><br>
+
+          แนวโน้ม Stock Out:
+          <strong>${trend.trend}</strong>
         `;
 
       }
 
 
-      const inRows =
-        todayRows.filter(row =>
-          String(
-            row.movement_type
-          ).toUpperCase() === "IN"
-        );
+      // OUT ONLY
+      if (asksOut && !asksIn) {
 
-      const outRows =
-        todayRows.filter(row =>
-          String(
-            row.movement_type
-          ).toUpperCase() === "OUT"
-        );
+        return `
+          <strong>${product.name_th}</strong><br>
+          ${product.name_en}
 
-      const totalIn =
-        inRows.reduce(
-          (sum,row) =>
-            sum +
-            Number(
-              row.quantity || 0
-            ),
-          0
-        );
+          <br><br>
 
-      const totalOut =
-        outRows.reduce(
-          (sum,row) =>
-            sum +
-            Number(
-              row.quantity || 0
-            ),
-          0
-        );
+          📅 ${range.label}
+
+          <br><br>
+
+          🔴 Stock Out:
+          <strong>${totalOut}</strong>
+          ${product.unit}
+        `;
+
+      }
 
 
+      // IN ONLY
+      if (asksIn && !asksOut) {
+
+        return `
+          <strong>${product.name_th}</strong><br>
+          ${product.name_en}
+
+          <br><br>
+
+          📅 ${range.label}
+
+          <br><br>
+
+          🟢 Stock In:
+          <strong>${totalIn}</strong>
+          ${product.unit}
+        `;
+
+      }
+
+
+      // BOTH
       return `
         <strong>${product.name_th}</strong><br>
-        ${product.name_en}<br><br>
+        ${product.name_en}
 
-        📅 วันนี้
+        <br><br>
+
+        📅 ${range.label}
 
         <br><br>
 
@@ -10317,130 +10696,102 @@ async function answerAIQuestion(
 
         <br><br>
 
-        Total Movement:
-        ${todayRows.length} รายการ
+        Net Movement:
+        <strong>
+          ${totalIn - totalOut}
+        </strong>
+        ${product.unit}
+
+        <br>
+
+        Total:
+        ${rows.length} movements
       `;
 
     }
 
 
-    // -----------------------------------
-    // TODAY OUT
-    // -----------------------------------
+    // TOP OUT
+    if (
+      asksTop ||
+      asksOut
+    ) {
 
-    if (isOutMovement) {
-
-      const outRows =
-        todayRows.filter(row =>
-          String(
-            row.movement_type
-          ).toUpperCase() === "OUT"
+      const top =
+        getAITopOut(
+          movements,
+          10
         );
 
 
-      if (!outRows.length) {
+      if (!top.length) {
 
         return `
-          🔴 วันนี้ยังไม่มี Stock Out ครับ
+          📅 ${range.label}
+
+          <br><br>
+
+          ยังไม่มี Stock Out
+          ในช่วงเวลานี้ครับ
         `;
 
       }
 
 
-      return `
-        <strong>Today's Stock Out</strong><br><br>
-        ${formatAIMovementList(
-          outRows,
-          15
-        )}
-      `;
+      const list =
+        top.map(
+          (item,index) => {
 
-    }
+            const p =
+              item.product;
 
+            return `
+              <strong>
+                ${index + 1}.
+                ${p.name_th}
+              </strong>
+              — ${item.quantity}
+              ${p.unit}
+            `;
 
-    // -----------------------------------
-    // TODAY IN
-    // -----------------------------------
-
-    if (isInMovement) {
-
-      const inRows =
-        todayRows.filter(row =>
-          String(
-            row.movement_type
-          ).toUpperCase() === "IN"
-        );
-
-
-      if (!inRows.length) {
-
-        return `
-          🟢 วันนี้ยังไม่มี Stock In ครับ
-        `;
-
-      }
-
-
-      return `
-        <strong>Today's Stock In</strong><br><br>
-        ${formatAIMovementList(
-          inRows,
-          15
-        )}
-      `;
-
-    }
-
-
-    // -----------------------------------
-    // TODAY SUMMARY
-    // -----------------------------------
-
-    if (!todayRows.length) {
-
-      return `
-        วันนี้ยังไม่มี Stock Movement ครับ
-      `;
-
-    }
-
-
-    const totalIn =
-      todayRows
-        .filter(row =>
-          String(
-            row.movement_type
-          ).toUpperCase() === "IN"
+          }
         )
-        .reduce(
-          (sum,row) =>
-            sum +
-            Number(
-              row.quantity || 0
-            ),
-          0
-        );
+        .join("<br>");
 
+
+      return `
+        <strong>📊 Top Stock Out</strong>
+        <br>
+        ${range.label}
+        <br><br>
+        ${list}
+      `;
+
+    }
+
+
+    // GENERAL RANGE SUMMARY
+    const totalIn =
+      sumAIMovement(
+        movements,
+        "IN"
+      );
 
     const totalOut =
-      todayRows
-        .filter(row =>
-          String(
-            row.movement_type
-          ).toUpperCase() === "OUT"
-        )
-        .reduce(
-          (sum,row) =>
-            sum +
-            Number(
-              row.quantity || 0
-            ),
-          0
-        );
+      sumAIMovement(
+        movements,
+        "OUT"
+      );
 
 
     return `
-      <strong>Today's Stock</strong><br><br>
+      <strong>📊 Stock Movement</strong>
+
+      <br>
+
+      ${range.label}
+
+      <br><br>
 
       🟢 Stock In:
       <strong>${totalIn}</strong>
@@ -10452,18 +10803,57 @@ async function answerAIQuestion(
 
       <br><br>
 
-      Total movements:
-      ${todayRows.length} รายการ
+      Total Movement:
+      ${movements.length} รายการ
     `;
 
   }
 
 
-  // =====================================
-  // LATEST MOVEMENT
-  // =====================================
+  // --------------------------------------
+  // CURRENT STOCK
+  // --------------------------------------
 
-  if (isLatest) {
+  if (
+    product &&
+    asksStock
+  ) {
+
+    aiConversationProduct =
+      product;
+
+    return formatAIStock(
+      product
+    );
+
+  }
+
+
+  // --------------------------------------
+  // PRODUCT + NO SPECIFIC INTENT
+  // --------------------------------------
+
+  if (product) {
+
+    aiConversationProduct =
+      product;
+
+    return formatAIStock(
+      product
+    );
+
+  }
+
+
+  // --------------------------------------
+  // LATEST
+  // --------------------------------------
+
+  if (
+    q.includes("ล่าสุด") ||
+    q.includes("recent") ||
+    q.includes("latest")
+  ) {
 
     const movements =
       await getAIMovements();
@@ -10478,137 +10868,96 @@ async function answerAIQuestion(
     }
 
 
+    const list =
+      movements
+        .slice(0,10)
+        .map(row => {
+
+          const p =
+            getAIMovementProduct(
+              row
+            );
+
+          const type =
+            String(
+              row.movement_type
+            ).toUpperCase();
+
+          const icon =
+            type === "IN"
+              ? "🟢"
+              : "🔴";
+
+          return `
+            ${icon}
+            <strong>
+              ${p
+                ? p.name_th
+                : "ไม่ทราบสินค้า"}
+            </strong>
+            — ${type}
+            ${row.quantity}
+            ${p ? p.unit : ""}
+          `;
+
+        })
+        .join("<br>");
+
+
     return `
-      <strong>Latest Stock Movement</strong>
+      <strong>🕘 Latest Stock Movement</strong>
       <br><br>
-      ${formatAIMovementList(
-        movements,
-        10
-      )}
+      ${list}
     `;
 
   }
 
 
-  // =====================================
-  // PRODUCT STOCK
-  // =====================================
-
-  if (
-    product &&
-    (
-      isStockQuestion ||
-      isLowStock ||
-      isOutOfStock
-    )
-  ) {
-
-    aiConversationProduct =
-      product;
-
-    return buildAIProductStockResponse(
-      product
-    );
-
-  }
-
-
-  // =====================================
-  // PRODUCT WITHOUT STOCK WORD
-  // =====================================
-
-  if (product) {
-
-    aiConversationProduct =
-      product;
-
-    return `
-      <strong>${product.name_th}</strong><br>
-      ${product.name_en}<br><br>
-
-      📦 Current Stock:
-      ${getAIStock(product).stock}
-      ${product.unit}
-
-      <br><br>
-
-      ถ้าต้องการดูจำนวนคงเหลือ
-      พิมพ์ว่า <strong>เหลือเท่าไหร่?</strong> ได้เลยครับ
-    `;
-
-  }
-
-
-  // =====================================
-  // GENERIC STOCK QUESTION
-  // =====================================
-
-  if (
-    isStockQuestion &&
-    !product
-  ) {
-
-    return `
-      ผมหาสินค้าที่ถามไม่เจอครับ 😅
-
-      <br><br>
-
-      ลองพิมพ์ชื่อสินค้า เช่น:
-      <br>
-      • ชาไทย
-      <br>
-      • อโรม่าแดง
-      <br>
-      • คาเนชั่น
-      <br>
-      • แก้ว PET 20oz
-      <br>
-      • ไซรัปคาราเมล
-    `;
-
-  }
-
-
-  // =====================================
+  // --------------------------------------
   // HELP
-  // =====================================
+  // --------------------------------------
 
   return `
-    ผมช่วยดู Stock ให้ได้หลายอย่างเลยครับ 👋
+    <strong>✦ Balenrista AI</strong>
+    <br><br>
+
+    ผมช่วยวิเคราะห์ Stock ให้ได้ครับ 👋
 
     <br><br>
 
-    <strong>📦 สต็อกสินค้า</strong>
+    📦 <strong>Current Stock</strong>
     <br>
     • ชาไทยเหลือเท่าไหร่?
     <br>
     • อโรม่าแดงเหลือเท่าไหร่?
+
     <br>
-    • ITEM-02 เหลือเท่าไหร่?
 
-    <br><br>
+    📊 <strong>Historical</strong>
+    <br>
+    • 7 วันที่ผ่านมาอะไรออกเยอะที่สุด?
+    <br>
+    • เดือนนี้ชาไทยออกไปเท่าไหร่?
+    <br>
+    • เดือนที่แล้วของเข้าเท่าไหร่?
 
-    <strong>⚠️ Stock Alert</strong>
+    <br>
+
+    📈 <strong>Analysis</strong>
+    <br>
+    • ชาไทยใช้เยอะขึ้นไหม?
+    <br>
+    • เดือนนี้ของอะไรออกเยอะ?
+    <br>
+    • มีอะไรที่ควรจับตา?
+
+    <br>
+
+    ⚠️ <strong>Alert</strong>
     <br>
     • อะไรใกล้หมด?
     <br>
     • มีอะไรหมดแล้ว?
-
-    <br><br>
-
-    <strong>📅 วันนี้</strong>
-    <br>
-    • วันนี้ Stock In มีอะไรบ้าง?
-    <br>
-    • วันนี้ Stock Out มีอะไรบ้าง?
-    <br>
-    • ชาไทยวันนี้เข้าออกเท่าไหร่?
-
-    <br><br>
-
-    <strong>🕘 ล่าสุด</strong>
-    <br>
-    • รายการล่าสุดคืออะไร?
   `;
 
 }
