@@ -758,6 +758,177 @@
         font-size: 10px;
       }
     }
+
+    /* ========================================
+   STOCK ALERT
+======================================== */
+
+.stock-alert-section {
+  margin-bottom: 28px;
+}
+
+.stock-alert-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stock-alert-item {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 14px;
+
+  padding: 14px 16px;
+
+  color: var(--soft-dove);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(57, 18, 20, 0.42),
+      rgba(82, 66, 61, 0.22)
+    );
+
+  border: 1px solid rgba(199, 122, 122, 0.18);
+  border-radius: 18px;
+
+  text-align: left;
+
+  box-shadow:
+    0 12px 35px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.stock-alert-item:hover {
+  transform: translateY(-2px);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(57, 18, 20, 0.58),
+      rgba(82, 66, 61, 0.28)
+    );
+
+  border-color: rgba(199, 122, 122, 0.3);
+}
+
+.stock-alert-main {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+}
+
+.stock-alert-number {
+  width: 38px;
+  height: 38px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--soft-dove);
+
+  background: rgba(22, 15, 12, 0.45);
+
+  border: 1px solid rgba(192, 186, 179, 0.1);
+  border-radius: 12px;
+
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.stock-alert-info {
+  min-width: 0;
+}
+
+.stock-alert-name-en {
+  overflow: hidden;
+
+  color: var(--soft-dove);
+
+  font-size: 11px;
+  line-height: 1.4;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.stock-alert-name-th {
+  margin-top: 3px;
+
+  overflow: hidden;
+
+  color: var(--moon-rock);
+
+  font-family:
+    "Noto Sans Thai",
+    sans-serif;
+
+  font-size: 10px;
+  line-height: 1.4;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.stock-alert-stock {
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: baseline;
+
+  gap: 3px;
+}
+
+.stock-alert-current {
+  color: #C77A7A;
+
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.stock-alert-min {
+  color: var(--moon-rock);
+
+  font-size: 9px;
+}
+
+@media (max-width: 390px) {
+
+  .stock-alert-item {
+    padding: 12px;
+  }
+
+  .stock-alert-number {
+    width: 34px;
+    height: 34px;
+  }
+
+  .stock-alert-name-en {
+    font-size: 10px;
+  }
+
+  .stock-alert-name-th {
+    font-size: 9px;
+  }
+
+}
   </style>
 </head>
 
