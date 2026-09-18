@@ -138,10 +138,10 @@ aiFloatingStyle.textContent = `
 @media (max-width: 699px) {
 
   .ai-floating-button {
-    right: 16px;
-    bottom: 88px;
-    width: 54px;
-    height: 54px;
+  position: fixed;
+  right: 18px;
+  bottom: 148px;
+  z-index: 950;
   }
 
 }
@@ -9338,11 +9338,14 @@ function getAIStock(product) {
     return null;
   }
 
+  const stockData =
+    stockMap[product.id] ??
+    stockMap[product.item_no] ??
+    null;
+
   const stock =
     Number(
-      stockMap[product.id] ??
-      stockMap[product.item_no] ??
-      0
+      stockData?.current_stock ?? 0
     );
 
   const minStock =
