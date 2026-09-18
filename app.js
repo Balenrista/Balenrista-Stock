@@ -2159,9 +2159,833 @@ function escapeHtml(
 
 }
 
+// ========================================
+// STOCK PAGE
+// ========================================
+
+const stockPage =
+  document.createElement("section");
+
+stockPage.id = "stockPage";
+
+stockPage.style.display = "none";
+
+stockPage.innerHTML = `
+
+  <div class="section-header">
+
+    <div class="section-title">
+      Stock
+    </div>
+
+    <div
+      class="section-count"
+      id="stockPageCount"
+    >
+      31 items
+    </div>
+
+  </div>
+
+
+  <div class="stock-summary">
+
+    <div class="stock-summary-card">
+
+      <span>
+        Total Items
+      </span>
+
+      <strong id="stockTotalItems">
+        0
+      </strong>
+
+    </div>
+
+
+    <div class="stock-summary-card low">
+
+      <span>
+        Low Stock
+      </span>
+
+      <strong id="stockLowItems">
+        0
+      </strong>
+
+    </div>
+
+
+    <div class="stock-summary-card normal">
+
+      <span>
+        Normal
+      </span>
+
+      <strong id="stockNormalItems">
+        0
+      </strong>
+
+    </div>
+
+  </div>
+
+
+  <div class="stock-page-list">
+
+    <div class="stock-page-list-header">
+
+      <div class="section-title">
+        Inventory
+      </div>
+
+    </div>
+
+    <div
+      id="stockPageList"
+      class="stock-page-list-items"
+    ></div>
+
+  </div>
+
+`;
+
+document
+  .querySelector(".app")
+  .appendChild(stockPage);
+
+
+// ========================================
+// STOCK PAGE STYLE
+// ========================================
+
+const stockPageStyle =
+  document.createElement("style");
+
+stockPageStyle.textContent = `
+
+  .stock-summary {
+
+    display: grid;
+
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+
+    gap: 10px;
+
+    margin-bottom: 28px;
+
+  }
+
+
+  .stock-summary-card {
+
+    padding: 16px 12px;
+
+    background:
+      rgba(82,66,61,.28);
+
+    border:
+      1px solid
+      rgba(192,186,179,.14);
+
+    border-radius: 18px;
+
+    text-align: center;
+
+    box-shadow:
+      0 12px 30px
+      rgba(0,0,0,.16);
+
+  }
+
+
+  .stock-summary-card span {
+
+    display: block;
+
+    color:
+      var(--moon-rock);
+
+    font-size: 8px;
+
+    letter-spacing: .08em;
+
+    margin-bottom: 8px;
+
+  }
+
+
+  .stock-summary-card strong {
+
+    display: block;
+
+    color:
+      var(--soft-dove);
+
+    font-size: 23px;
+
+  }
+
+
+  .stock-summary-card.low strong {
+
+    color: #C77A7A;
+
+  }
+
+
+  .stock-summary-card.normal strong {
+
+    color: #9FA99D;
+
+  }
+
+
+  .stock-page-list {
+
+    margin-top: 8px;
+
+  }
+
+
+  .stock-page-list-header {
+
+    margin-bottom: 12px;
+
+  }
+
+
+  .stock-page-list-items {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+  }
+
+
+  .stock-page-item {
+
+    width: 100%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 12px;
+
+    padding: 14px;
+
+    color:
+      var(--soft-dove);
+
+    background:
+      rgba(82,66,61,.24);
+
+    border:
+      1px solid
+      rgba(192,186,179,.13);
+
+    border-radius: 18px;
+
+    text-align: left;
+
+  }
+
+
+  .stock-page-item-main {
+
+    min-width: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+  }
+
+
+  .stock-page-item-number {
+
+    width: 38px;
+    height: 38px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    color:
+      var(--soft-dove);
+
+    background:
+      rgba(22,15,12,.45);
+
+    border:
+      1px solid
+      rgba(192,186,179,.1);
+
+    border-radius: 12px;
+
+    font-size: 10px;
+
+  }
+
+
+  .stock-page-item-info {
+
+    min-width: 0;
+
+  }
+
+
+  .stock-page-item-name {
+
+    overflow: hidden;
+
+    color:
+      var(--soft-dove);
+
+    font-size: 11px;
+
+    white-space: nowrap;
+
+    text-overflow: ellipsis;
+
+  }
+
+
+  .stock-page-item-th {
+
+    margin-top: 3px;
+
+    overflow: hidden;
+
+    color:
+      var(--moon-rock);
+
+    font-family:
+      "Noto Sans Thai",
+      sans-serif;
+
+    font-size: 9px;
+
+    white-space: nowrap;
+
+    text-overflow: ellipsis;
+
+  }
+
+
+  .stock-page-item-value {
+
+    flex-shrink: 0;
+
+    text-align: right;
+
+  }
+
+
+  .stock-page-current {
+
+    color:
+      var(--soft-dove);
+
+    font-size: 16px;
+
+    font-weight: 700;
+
+  }
+
+
+  .stock-page-current.low {
+
+    color:
+      #C77A7A;
+
+  }
+
+
+  .stock-page-min {
+
+    margin-top: 2px;
+
+    color:
+      var(--moon-rock);
+
+    font-size: 8px;
+
+  }
+
+
+  @media (max-width: 390px) {
+
+    .stock-summary {
+
+      gap: 7px;
+
+    }
+
+
+    .stock-summary-card {
+
+      padding: 14px 8px;
+
+    }
+
+
+    .stock-summary-card strong {
+
+      font-size: 20px;
+
+    }
+
+  }
+
+`;
+
+document.head.appendChild(
+  stockPageStyle
+);
+
+
+// ========================================
+// STOCK PAGE RENDER
+// ========================================
+
+function renderStockPage() {
+
+  const totalItems =
+    allProducts.length;
+
+
+  let lowItems = 0;
+  let normalItems = 0;
+
+
+  allProducts.forEach(
+    product => {
+
+      const stock =
+        stockMap[product.id];
+
+
+      const currentStock =
+        stock
+          ? Number(
+              stock.current_stock
+            )
+          : 0;
+
+
+      const minStock =
+        stock
+          ? Number(
+              stock.min_stock
+            )
+          : Number(
+              product.min_stock || 5
+            );
+
+
+      if (
+        currentStock <=
+        minStock
+      ) {
+
+        lowItems++;
+
+      } else {
+
+        normalItems++;
+
+      }
+
+    }
+  );
+
+
+  document
+    .getElementById(
+      "stockTotalItems"
+    )
+    .textContent =
+    totalItems;
+
+
+  document
+    .getElementById(
+      "stockLowItems"
+    )
+    .textContent =
+    lowItems;
+
+
+  document
+    .getElementById(
+      "stockNormalItems"
+    )
+    .textContent =
+    normalItems;
+
+
+  document
+    .getElementById(
+      "stockPageCount"
+    )
+    .textContent =
+    `${totalItems} items`;
+
+
+  const list =
+    document.getElementById(
+      "stockPageList"
+    );
+
+
+  list.innerHTML =
+    allProducts
+      .map(product => {
+
+        const stock =
+          stockMap[product.id];
+
+
+        const currentStock =
+          stock
+            ? Number(
+                stock.current_stock
+              )
+            : 0;
+
+
+        const minStock =
+          stock
+            ? Number(
+                stock.min_stock
+              )
+            : Number(
+                product.min_stock || 5
+              );
+
+
+        const isLow =
+          currentStock <=
+          minStock;
+
+
+        return `
+
+          <button
+            class="stock-page-item"
+            data-product-id="${escapeHtml(
+              product.id
+            )}"
+          >
+
+            <div
+              class="stock-page-item-main"
+            >
+
+              <div
+                class="stock-page-item-number"
+              >
+                ${String(
+                  product.item_no
+                ).padStart(2, "0")}
+              </div>
+
+
+              <div
+                class="stock-page-item-info"
+              >
+
+                <div
+                  class="stock-page-item-name"
+                >
+                  ${escapeHtml(
+                    product.name_en || ""
+                  )}
+                </div>
+
+
+                <div
+                  class="stock-page-item-th"
+                >
+                  ${escapeHtml(
+                    product.name_th || ""
+                  )}
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div
+              class="stock-page-item-value"
+            >
+
+              <div
+                class="
+                  stock-page-current
+                  ${isLow ? "low" : ""}
+                "
+              >
+                ${formatNumber(
+                  currentStock
+                )}
+              </div>
+
+
+              <div
+                class="stock-page-min"
+              >
+                MIN ${
+                  formatNumber(
+                    minStock
+                  )
+                }
+              </div>
+
+            </div>
+
+          </button>
+
+        `;
+
+      })
+      .join("");
+
+
+  list
+    .querySelectorAll(
+      ".stock-page-item"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const product =
+            allProducts.find(
+              item =>
+                item.id ===
+                button.dataset
+                  .productId
+            );
+
+
+          if (product) {
+
+            openProductDetail(
+              product
+            );
+
+          }
+
+        }
+      );
+
+    });
+
+}
+
+
+// ========================================
+// PAGE NAVIGATION
+// ========================================
+
+const navHome =
+  document.getElementById(
+    "navHome"
+  );
+
+const navStock =
+  document.getElementById(
+    "navStock"
+  );
+
+const navCatalog =
+  document.getElementById(
+    "navCatalog"
+  );
+
+const navDashboard =
+  document.getElementById(
+    "navDashboard"
+  );
+
+
+const homeElements = [
+
+  document.querySelector(".hero"),
+
+  document.querySelector(".search-area"),
+
+  document
+    .getElementById("categoryRow")
+    ?.closest("section"),
+
+  stockAlertSection,
+
+  productGrid
+
+];
+
+
+function setActiveNav(
+  activeButton
+) {
+
+  document
+    .querySelectorAll(
+      ".nav-item"
+    )
+    .forEach(button => {
+
+      button.classList.remove(
+        "active"
+      );
+
+    });
+
+
+  if (activeButton) {
+
+    activeButton.classList.add(
+      "active"
+    );
+
+  }
+
+}
+
+
+function showHomePage() {
+
+  homeElements.forEach(
+    element => {
+
+      if (element) {
+
+        element.style.display =
+          "";
+
+      }
+
+    }
+  );
+
+
+  stockPage.style.display =
+    "none";
+
+
+  setActiveNav(
+    navHome
+  );
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+}
+
+
+function showStockPage() {
+
+  homeElements.forEach(
+    element => {
+
+      if (element) {
+
+        element.style.display =
+          "none";
+
+      }
+
+    }
+  );
+
+
+  stockPage.style.display =
+    "block";
+
+
+  renderStockPage();
+
+
+  setActiveNav(
+    navStock
+  );
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+}
+
+
+navHome.addEventListener(
+  "click",
+  showHomePage
+);
+
+
+navStock.addEventListener(
+  "click",
+  showStockPage
+);
+
+
+// Catalog / Dashboard
+// ยังไม่เปิดใช้งาน
+
+navCatalog.addEventListener(
+  "click",
+  () => {
+
+    showHomePage();
+
+    alert(
+      "Catalog จะเปิดใช้งานในขั้นถัดไป"
+    );
+
+  }
+);
+
+
+navDashboard.addEventListener(
+  "click",
+  () => {
+
+    showHomePage();
+
+    alert(
+      "Dashboard จะเปิดใช้งานในขั้นถัดไป"
+    );
+
+  }
+);
+
 
 // ========================================
 // START
 // ========================================
 
 loadProducts();
+
