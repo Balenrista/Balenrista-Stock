@@ -10865,7 +10865,7 @@ async function sendAIQuestion() {
 
 
     loading.innerHTML =
-      answer;
+  formatAIResponse(answer);
 
   } catch (error) {
 
