@@ -10527,7 +10527,9 @@ async function answerAIQuestion(question) {
       );
     }
 
-    return data.answer;
+    return formatAIResponse(
+  data.answer
+);
 
   } catch (error) {
 
@@ -10558,8 +10560,174 @@ async function answerAIQuestion(question) {
 }
 
 // ========================================
-// AI EVENTS
+// AI RESPONSE FORMATTER
 // ========================================
+
+function formatAIResponse(raw) {
+
+  let text =
+    String(raw || "")
+      .trim();
+
+  if (!text) {
+
+    return `
+      <div class="ai-response">
+
+        <div class="ai-response-line">
+          ไม่พบข้อมูลครับ
+        </div>
+
+      </div>
+    `;
+
+  }
+
+
+  // ========================================
+  // NORMALIZE LINE BREAKS
+  // ========================================
+
+  text =
+    text
+      .replace(/\r\n/g, "\n")
+      .replace(/\r/g, "\n");
+
+
+  // ========================================
+  // ESCAPE HTML
+  // ========================================
+
+  text =
+    text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+
+
+  // ========================================
+  // MARKDOWN BOLD
+  // **text**
+  // ========================================
+
+  text =
+    text.replace(
+      /\*\*(.*?)\*\*/g,
+      "<strong>$1</strong>"
+    );
+
+
+  // ========================================
+  // STOCK STATUS
+  // ========================================
+
+  text =
+    text.replace(
+      /\bOUT OF STOCK\b/gi,
+      `<span class="ai-status ai-status-out">OUT OF STOCK</span>`
+    );
+
+
+  text =
+    text.replace(
+      /\bLOW STOCK\b/gi,
+      `<span class="ai-status ai-status-low">LOW STOCK</span>`
+    );
+
+
+  text =
+    text.replace(
+      /\bNORMAL\b/gi,
+      `<span class="ai-status ai-status-normal">NORMAL</span>`
+    );
+
+
+  // ========================================
+  // STOCK IN / OUT
+  // ========================================
+
+  text =
+    text.replace(
+      /\bStock\s+In\b/gi,
+      `<span class="ai-badge ai-badge-in">STOCK IN</span>`
+    );
+
+
+  text =
+    text.replace(
+      /\bStock\s+Out\b/gi,
+      `<span class="ai-badge ai-badge-out">STOCK OUT</span>`
+    );
+
+
+  // ========================================
+  // MARKDOWN BULLETS
+  // ========================================
+
+  text =
+    text.replace(
+      /^[ \t]*[-*•][ \t]+/gm,
+      "• "
+    );
+
+
+  // ========================================
+  // SPLIT LINES
+  // ========================================
+
+  const lines =
+    text
+      .split(/\n+/)
+      .map(line => line.trim())
+      .filter(Boolean);
+
+
+  // ========================================
+  // BUILD RESPONSE
+  // ========================================
+
+  const html =
+    lines
+      .map(line => {
+
+        if (
+          line.startsWith("• ")
+        ) {
+
+          return `
+            <div class="ai-response-line ai-response-bullet">
+
+              <span class="ai-bullet-dot">
+                •
+              </span>
+
+              <span>
+                ${line.substring(2)}
+              </span>
+
+            </div>
+          `;
+
+        }
+
+
+        return `
+          <div class="ai-response-line">
+            ${line}
+          </div>
+        `;
+
+      })
+      .join("");
+
+
+  return `
+    <div class="ai-response">
+      ${html}
+    </div>
+  `;
+
+}
 // ========================================
 // AI EVENTS
 // ========================================
