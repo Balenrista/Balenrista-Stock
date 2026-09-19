@@ -606,6 +606,162 @@ aiModalStyle.textContent = `
 
 }
 
+/* ========================================
+   AI RESPONSE — READABLE
+======================================== */
+
+.ai-response {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+
+.ai-response-line {
+
+  padding: 3px 0;
+
+  font-family:
+    "Noto Sans Thai",
+    sans-serif;
+
+  font-size: 11px;
+
+  line-height: 1.75;
+
+  color:
+    var(--soft-dove);
+
+}
+
+
+.ai-response-line strong {
+
+  font-weight: 700;
+
+  color:
+    #ffffff;
+
+}
+
+
+.ai-badge {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  padding:
+    3px 7px;
+
+  margin-right: 4px;
+
+  border-radius: 999px;
+
+  font-size: 9px;
+
+  font-weight: 700;
+
+  letter-spacing: .03em;
+
+}
+
+
+.ai-badge-in {
+
+  color: #DDE8DC;
+
+  background:
+    rgba(159,169,157,.18);
+
+  border:
+    1px solid
+    rgba(159,169,157,.30);
+
+}
+
+
+.ai-badge-out {
+
+  color: #F2C5C5;
+
+  background:
+    rgba(199,122,122,.18);
+
+  border:
+    1px solid
+    rgba(199,122,122,.32);
+
+}
+
+
+.ai-status {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  padding:
+    2px 6px;
+
+  margin-left: 3px;
+
+  border-radius: 6px;
+
+  font-size: 8px;
+
+  font-weight: 700;
+
+}
+
+
+.ai-status-out {
+
+  color: #FFD6D6;
+
+  background:
+    rgba(199,82,82,.22);
+
+}
+
+
+.ai-status-low {
+
+  color: #FFE1B5;
+
+  background:
+    rgba(214,155,76,.20);
+
+}
+
+
+.ai-status-normal {
+
+  color: #DCE8D9;
+
+  background:
+    rgba(159,169,157,.18);
+
+}
+
+
+.ai-error-box {
+
+  padding: 10px 12px;
+
+  border-radius: 12px;
+
+  background:
+    rgba(199,82,82,.12);
+
+  border:
+    1px solid
+    rgba(199,82,82,.20);
+
+  line-height: 1.7;
+
+}
+
 `;
 
 document.head.appendChild(
@@ -10320,99 +10476,159 @@ function formatAITopMovement(
 }
 
 
-// ========================================
-// ANSWER AI — GEMINI BACKEND
-// ========================================
+/* ========================================
+   AI RESPONSE — READABLE
+======================================== */
 
-async function answerAIQuestion(
-  question
-) {
-
-  const q =
-    String(
-      question || ""
-    ).trim();
+.ai-response {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
 
 
-  if (!q) {
+.ai-response-line {
 
-    return `
-      ลองถามผมเรื่อง Stock ได้เลยครับ 👋
-    `;
+  padding: 3px 0;
 
-  }
+  font-family:
+    "Noto Sans Thai",
+    sans-serif;
 
+  font-size: 11px;
 
-  try {
+  line-height: 1.75;
 
-    const {
-      data,
-      error
-    } =
-      await supabaseClient
-        .functions
-        .invoke(
-          "balenrista-ai",
-          {
-            body: {
-              question: q
-            }
-          }
-        );
+  color:
+    var(--soft-dove);
+
+}
 
 
-    if (error) {
+.ai-response-line strong {
 
-      console.error(
-        "BALENRISTA AI Function Error:",
-        error
-      );
+  font-weight: 700;
 
-      throw error;
+  color:
+    #ffffff;
 
-    }
+}
 
 
-    if (
-      !data ||
-      !data.answer
-    ) {
+.ai-badge {
 
-      throw new Error(
-        "AI ไม่ได้ส่งคำตอบกลับมา"
-      );
+  display: inline-flex;
 
-    }
+  align-items: center;
 
+  padding:
+    3px 7px;
 
-    return data.answer;
+  margin-right: 4px;
 
-  }
+  border-radius: 999px;
 
-  catch (error) {
+  font-size: 9px;
 
-    console.error(
-      "BALENRISTA AI ERROR:",
-      error
-    );
+  font-weight: 700;
+
+  letter-spacing: .03em;
+
+}
 
 
-    return `
-      <strong>
-        ขออภัยครับ 😅
-      </strong>
+.ai-badge-in {
 
-      <br><br>
+  color: #DDE8DC;
 
-      ตอนนี้ไม่สามารถเชื่อมต่อ
-      AI Stock Assistant ได้
+  background:
+    rgba(159,169,157,.18);
 
-      <br><br>
+  border:
+    1px solid
+    rgba(159,169,157,.30);
 
-      กรุณาลองใหม่อีกครั้งครับ
-    `;
+}
 
-  }
+
+.ai-badge-out {
+
+  color: #F2C5C5;
+
+  background:
+    rgba(199,122,122,.18);
+
+  border:
+    1px solid
+    rgba(199,122,122,.32);
+
+}
+
+
+.ai-status {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  padding:
+    2px 6px;
+
+  margin-left: 3px;
+
+  border-radius: 6px;
+
+  font-size: 8px;
+
+  font-weight: 700;
+
+}
+
+
+.ai-status-out {
+
+  color: #FFD6D6;
+
+  background:
+    rgba(199,82,82,.22);
+
+}
+
+
+.ai-status-low {
+
+  color: #FFE1B5;
+
+  background:
+    rgba(214,155,76,.20);
+
+}
+
+
+.ai-status-normal {
+
+  color: #DCE8D9;
+
+  background:
+    rgba(159,169,157,.18);
+
+}
+
+
+.ai-error-box {
+
+  padding: 10px 12px;
+
+  border-radius: 12px;
+
+  background:
+    rgba(199,82,82,.12);
+
+  border:
+    1px solid
+    rgba(199,82,82,.20);
+
+  line-height: 1.7;
 
 }
 // ========================================
