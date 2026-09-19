@@ -10476,161 +10476,90 @@ function formatAITopMovement(
 }
 
 
-/* ========================================
-   AI RESPONSE — READABLE
-======================================== */
+// ========================================
+// ANSWER AI — GEMINI BACKEND
+// ========================================
 
-.ai-response {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
+async function answerAIQuestion(question) {
+
+  const q =
+    String(question || "")
+      .trim();
+
+  if (!q) {
+    return `
+      <div class="ai-response">
+        <div class="ai-response-line">
+          ลองถามผมเรื่อง Stock ได้เลยครับ 👋
+        </div>
+      </div>
+    `;
+  }
+
+  try {
+
+    const { data, error } =
+      await supabaseClient
+        .functions
+        .invoke(
+          "balenrista-ai",
+          {
+            body: {
+              question: q
+            }
+          }
+        );
+
+    if (error) {
+      console.error(
+        "BALENRISTA AI Function Error:",
+        error
+      );
+      throw error;
+    }
+
+    if (
+      !data ||
+      !data.answer
+    ) {
+      throw new Error(
+        "AI ไม่ได้ส่งคำตอบกลับมา"
+      );
+    }
+
+    return data.answer;
+
+  } catch (error) {
+
+    console.error(
+      "BALENRISTA AI ERROR:",
+      error
+    );
+
+    return `
+      <div class="ai-error-box">
+
+        <strong>
+          ขออภัยครับ 😅
+        </strong>
+
+        <br>
+
+        ตอนนี้ไม่สามารถเชื่อมต่อ
+        AI Stock Assistant ได้
+
+        <br><br>
+
+        กรุณาลองใหม่อีกครั้งครับ
+
+      </div>
+    `;
+  }
 }
 
-
-.ai-response-line {
-
-  padding: 3px 0;
-
-  font-family:
-    "Noto Sans Thai",
-    sans-serif;
-
-  font-size: 11px;
-
-  line-height: 1.75;
-
-  color:
-    var(--soft-dove);
-
-}
-
-
-.ai-response-line strong {
-
-  font-weight: 700;
-
-  color:
-    #ffffff;
-
-}
-
-
-.ai-badge {
-
-  display: inline-flex;
-
-  align-items: center;
-
-  padding:
-    3px 7px;
-
-  margin-right: 4px;
-
-  border-radius: 999px;
-
-  font-size: 9px;
-
-  font-weight: 700;
-
-  letter-spacing: .03em;
-
-}
-
-
-.ai-badge-in {
-
-  color: #DDE8DC;
-
-  background:
-    rgba(159,169,157,.18);
-
-  border:
-    1px solid
-    rgba(159,169,157,.30);
-
-}
-
-
-.ai-badge-out {
-
-  color: #F2C5C5;
-
-  background:
-    rgba(199,122,122,.18);
-
-  border:
-    1px solid
-    rgba(199,122,122,.32);
-
-}
-
-
-.ai-status {
-
-  display: inline-flex;
-
-  align-items: center;
-
-  padding:
-    2px 6px;
-
-  margin-left: 3px;
-
-  border-radius: 6px;
-
-  font-size: 8px;
-
-  font-weight: 700;
-
-}
-
-
-.ai-status-out {
-
-  color: #FFD6D6;
-
-  background:
-    rgba(199,82,82,.22);
-
-}
-
-
-.ai-status-low {
-
-  color: #FFE1B5;
-
-  background:
-    rgba(214,155,76,.20);
-
-}
-
-
-.ai-status-normal {
-
-  color: #DCE8D9;
-
-  background:
-    rgba(159,169,157,.18);
-
-}
-
-
-.ai-error-box {
-
-  padding: 10px 12px;
-
-  border-radius: 12px;
-
-  background:
-    rgba(199,82,82,.12);
-
-  border:
-    1px solid
-    rgba(199,82,82,.20);
-
-  line-height: 1.7;
-
-}
+// ========================================
+// AI EVENTS
+// ========================================
 // ========================================
 // AI EVENTS
 // ========================================
