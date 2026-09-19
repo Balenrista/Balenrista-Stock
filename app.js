@@ -10592,42 +10592,88 @@ function formatAIResponse(raw) {
       .replace(/\r/g, "\n");
 
 
- // ========================================
-// PRESERVE SAFE HTML FROM GEMINI
-// ========================================
+  // ========================================
+  // REMOVE AI HTML WRAPPERS
+  // Backend may already return:
+  // <div class="ai-response">
+  // <div class="ai-response-line">
+  // ========================================
 
-text =
-  text
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<strong>/gi, "%%STRONG_OPEN%%")
-    .replace(/<\/strong>/gi, "%%STRONG_CLOSE%%");
+  text =
+    text
+      .replace(
+        /<div[^>]*class=["']ai-response["'][^>]*>/gi,
+        "\n"
+      )
+      .replace(
+        /<div[^>]*class=["']ai-response-line["'][^>]*>/gi,
+        "\n"
+      )
+      .replace(
+        /<div[^>]*class=["']ai-response-line\s+ai-response-bullet["'][^>]*>/gi,
+        "\n• "
+      )
+      .replace(
+        /<span[^>]*class=["']ai-bullet-dot["'][^>]*>\s*•\s*<\/span>/gi,
+        "• "
+      )
+      .replace(
+        /<\/div>/gi,
+        "\n"
+      )
+      .replace(
+        /<\/span>/gi,
+        ""
+      );
 
 
-// ========================================
-// ESCAPE HTML
-// ========================================
+  // ========================================
+  // PRESERVE SAFE STRONG TAG
+  // ========================================
 
-text =
-  text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  text =
+    text
+      .replace(
+        /<br\s*\/?>/gi,
+        "\n"
+      )
+      .replace(
+        /<strong>/gi,
+        "%%STRONG_OPEN%%"
+      )
+      .replace(
+        /<\/strong>/gi,
+        "%%STRONG_CLOSE%%"
+      );
 
 
-// ========================================
-// RESTORE SAFE STRONG TAG
-// ========================================
+  // ========================================
+  // ESCAPE HTML
+  // ========================================
 
-text =
-  text
-    .replace(
-      /%%STRONG_OPEN%%/g,
-      "<strong>"
-    )
-    .replace(
-      /%%STRONG_CLOSE%%/g,
-      "</strong>"
-    );
+  text =
+    text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+
+
+  // ========================================
+  // RESTORE SAFE STRONG TAG
+  // ========================================
+
+  text =
+    text
+      .replace(
+        /%%STRONG_OPEN%%/g,
+        "<strong>"
+      )
+      .replace(
+        /%%STRONG_CLOSE%%/g,
+        "</strong>"
+      );
+
+
   // ========================================
   // MARKDOWN BOLD
   // **text**
