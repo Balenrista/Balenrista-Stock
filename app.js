@@ -10321,7 +10321,7 @@ function formatAITopMovement(
 
 
 // ========================================
-// ANSWER AI
+// ANSWER AI — GEMINI BACKEND
 // ========================================
 
 async function answerAIQuestion(
@@ -10329,9 +10329,9 @@ async function answerAIQuestion(
 ) {
 
   const q =
-    normalizeAIText(
-      question
-    );
+    String(
+      question || ""
+    ).trim();
 
 
   if (!q) {
@@ -10343,824 +10343,78 @@ async function answerAIQuestion(
   }
 
 
-  // ======================================
-  // INTENT
-  // ======================================
+  try {
 
-  const range =
-    getAIRange(q);
-
-
-  const isToday =
-    q.includes("วันนี้") ||
-    q.includes("today");
-
-
-  const isLatest =
-    q.includes("ล่าสุด") ||
-    q.includes("รายการล่าสุด") ||
-    q.includes("recent") ||
-    q.includes("latest");
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .functions
+        .invoke(
+          "balenrista-ai",
+          {
+            body: {
+              question: q
+            }
+          }
+        );
 
 
-  const isLowStock =
-    q.includes("ใกล้หมด") ||
-    q.includes("เหลือน้อย") ||
-    q.includes("low stock");
+    if (error) {
+
+      console.error(
+        "BALENRISTA AI Function Error:",
+        error
+      );
+
+      throw error;
+
+    }
 
 
-  const isOutOfStock =
-    q.includes("หมดแล้ว") ||
-    q.includes("หมดเลย") ||
-    q.includes("out of stock");
+    if (
+      !data ||
+      !data.answer
+    ) {
+
+      throw new Error(
+        "AI ไม่ได้ส่งคำตอบกลับมา"
+      );
+
+    }
 
 
-  const isStockQuestion =
-    q.includes("เหลือ") ||
-    q.includes("คงเหลือ") ||
-    q.includes("สต็อก") ||
-    q.includes("stock") ||
-    q.includes("มีไหม") ||
-    q.includes("กี่") ||
-    q.includes("เท่าไหร่") ||
-    q.includes("เท่าไร") ||
-    q.includes("how much") ||
-    q.includes("how many");
+    return data.answer;
 
+  }
 
-  // Stock Out / ใช้ออกไป
-  const isOutMovement =
-    q.includes("stock out") ||
-    q.includes("stockout") ||
-    q.includes("ออก") ||
-    q.includes("เบิก") ||
-    q.includes("ใช้ไป") ||
-    q.includes("ใช้") ||
-    q.includes("used");
+  catch (error) {
 
-
-  // Stock In
-  const isInMovement =
-    q.includes("stock in") ||
-    q.includes("stockin") ||
-    q.includes("เข้า") ||
-    q.includes("รับเข้า");
-
-
-  // เข้า + ออก
-  const asksBoth =
-    (
-      (
-        isInMovement &&
-        isOutMovement
-      )
-      ||
-      q.includes("เข้าออก")
-      ||
-      q.includes("in out")
-      ||
-      q.includes("in/out")
+    console.error(
+      "BALENRISTA AI ERROR:",
+      error
     );
 
 
-  // ======================================
-  // FIND PRODUCT
-  // ======================================
-
-  let product =
-    findAIProduct(q);
-
-
-  // ======================================
-  // FOLLOW-UP
-  // ======================================
-
-  const isFollowUp =
-    q.includes("ตัวนี้") ||
-    q.includes("อันนี้") ||
-    q.includes("สินค้านี้") ||
-    q.includes("ตัวเดิม") ||
-    q.includes("อันเดิม") ||
-    q.includes("แล้วตัวนี้") ||
-    q.includes("แล้วอันนี้") ||
-    q === "แล้วล่ะ" ||
-    q === "แล้วตัวนี้ล่ะ" ||
-    q === "แล้วอันนี้ล่ะ";
-
-
-  if (
-    !product &&
-    isFollowUp &&
-    aiConversationProduct
-  ) {
-
-    product =
-      aiConversationProduct;
-
-  }
-
-
-  if (product) {
-
-    aiConversationProduct =
-      product;
-
-  }
-
-
-  // ======================================
-  // STOCK ALERT
-  // ======================================
-
-  if (
-    !product &&
-    (
-      isLowStock ||
-      isOutOfStock
-    )
-  ) {
-
-    const items =
-      getAILowStock();
-
-
-    if (!items.length) {
-
-      return `
-        🟢 ตอนนี้ไม่มีสินค้าที่ต่ำกว่า
-        Minimum Stock ครับ
-      `;
-
-    }
-
-
-    const filtered =
-      isOutOfStock
-        ? items.filter(
-            item =>
-              item.stock <= 0
-          )
-        : items;
-
-
-    if (!filtered.length) {
-
-      return `
-        🟢 ตอนนี้ยังไม่มีสินค้า
-        ที่หมดครับ
-      `;
-
-    }
-
-
-    const out =
-      filtered
-        .slice(0,15)
-        .map(item => {
-
-          const p =
-            item.product;
-
-
-          const icon =
-            item.stock <= 0
-              ? "🔴"
-              : "🟠";
-
-
-          return `
-            ${icon}
-            <strong>
-              ${p.name_th}
-            </strong>
-            — ${item.stock}
-            ${p.unit}
-            / Min ${item.minStock}
-          `;
-
-        })
-        .join("<br>");
-
-
     return `
-      <strong>⚠️ Stock Alert</strong>
+      <strong>
+        ขออภัยครับ 😅
+      </strong>
+
       <br><br>
-      ${out}
+
+      ตอนนี้ไม่สามารถเชื่อมต่อ
+      AI Stock Assistant ได้
+
+      <br><br>
+
+      กรุณาลองใหม่อีกครั้งครับ
     `;
 
   }
-
-
-  // ======================================
-  // MOVEMENT BY DATE RANGE
-  // ======================================
-
-  if (
-    range &&
-    (
-      asksBoth ||
-      isOutMovement ||
-      isInMovement
-    )
-  ) {
-
-    const movements =
-      await getAIMovements();
-
-
-    const rows =
-      filterAIMovementsByRange(
-        movements,
-        range
-      );
-
-
-    // ------------------------------------
-    // SPECIFIC PRODUCT
-    // ------------------------------------
-
-    if (product) {
-
-      const summary =
-        getAIProductMovementSummary(
-          rows,
-          product
-        );
-
-
-      const current =
-        getAIStock(
-          product
-        );
-
-
-      // เข้า + ออก
-      if (asksBoth) {
-
-        return `
-          <strong>
-            ${product.name_th}
-          </strong><br>
-
-          ${product.name_en}
-
-          <br><br>
-
-          📅 ${range.label}
-
-          <br><br>
-
-          🟢 Stock In:
-          <strong>
-            ${summary.totalIn}
-          </strong>
-          ${product.unit}
-
-          <br>
-
-          🔴 Stock Out:
-          <strong>
-            ${summary.totalOut}
-          </strong>
-          ${product.unit}
-
-          <br><br>
-
-          📊 สุทธิ:
-          <strong>
-            ${
-              summary.net >= 0
-                ? "+"
-                : ""
-            }${summary.net}
-          </strong>
-          ${product.unit}
-
-          <br><br>
-
-          📦 Current Stock:
-          <strong>
-            ${current.stock}
-          </strong>
-          ${product.unit}
-        `;
-
-      }
-
-
-      // Stock Out
-      if (
-        isOutMovement
-      ) {
-
-        return `
-          <strong>
-            ${product.name_th}
-          </strong><br>
-
-          ${product.name_en}
-
-          <br><br>
-
-          📅 ${range.label}
-
-          <br><br>
-
-          🔴 Stock Out:
-          <strong>
-            ${summary.totalOut}
-          </strong>
-          ${product.unit}
-        `;
-
-      }
-
-
-      // Stock In
-      if (
-        isInMovement
-      ) {
-
-        return `
-          <strong>
-            ${product.name_th}
-          </strong><br>
-
-          ${product.name_en}
-
-          <br><br>
-
-          📅 ${range.label}
-
-          <br><br>
-
-          🟢 Stock In:
-          <strong>
-            ${summary.totalIn}
-          </strong>
-          ${product.unit}
-        `;
-
-      }
-
-    }
-
-
-    // ------------------------------------
-    // ALL PRODUCTS
-    // ------------------------------------
-
-    if (!rows.length) {
-
-      return `
-        📅 ${range.label}
-
-        <br><br>
-
-        ยังไม่มี Stock Movement
-        ในช่วงเวลานี้ครับ
-      `;
-
-    }
-
-
-    // ------------------------------------
-    // TOTAL IN + OUT
-    // ------------------------------------
-
-    if (asksBoth) {
-
-      const summary =
-        summarizeAIMovements(
-          rows
-        );
-
-
-      return `
-        <strong>
-          📊 Stock Movement
-        </strong>
-
-        <br><br>
-
-        📅 ${range.label}
-
-        <br><br>
-
-        🟢 Stock In:
-        <strong>
-          ${summary.totalIn}
-        </strong>
-
-        <br>
-
-        🔴 Stock Out:
-        <strong>
-          ${summary.totalOut}
-        </strong>
-
-        <br><br>
-
-        📊 สุทธิ:
-        <strong>
-          ${
-            summary.net >= 0
-              ? "+"
-              : ""
-          }${summary.net}
-        </strong>
-      `;
-
-    }
-
-
-    // ------------------------------------
-    // TOP STOCK OUT
-    // ------------------------------------
-
-    if (
-      isOutMovement
-    ) {
-
-      return `
-        <strong>
-          🔴 Stock Out มากที่สุด
-        </strong>
-
-        <br><br>
-
-        📅 ${range.label}
-
-        <br><br>
-
-        ${formatAITopMovement(
-          rows,
-          "OUT",
-          10
-        )}
-      `;
-
-    }
-
-
-    // ------------------------------------
-    // TOP STOCK IN
-    // ------------------------------------
-
-    if (
-      isInMovement
-    ) {
-
-      return `
-        <strong>
-          🟢 Stock In มากที่สุด
-        </strong>
-
-        <br><br>
-
-        📅 ${range.label}
-
-        <br><br>
-
-        ${formatAITopMovement(
-          rows,
-          "IN",
-          10
-        )}
-      `;
-
-    }
-
-  }
-
-
-  // ======================================
-  // TODAY
-  // ======================================
-
-  if (isToday) {
-
-    const movements =
-      await getAIMovements();
-
-
-    const rows =
-      filterAIMovementsByRange(
-        movements,
-        getAIRange("วันนี้")
-      );
-
-
-    if (product) {
-
-      const summary =
-        getAIProductMovementSummary(
-          rows,
-          product
-        );
-
-
-      const current =
-        getAIStock(
-          product
-        );
-
-
-      return `
-        <strong>
-          ${product.name_th}
-        </strong><br>
-
-        ${product.name_en}
-
-        <br><br>
-
-        📅 วันนี้
-
-        <br><br>
-
-        🟢 Stock In:
-        <strong>
-          ${summary.totalIn}
-        </strong>
-        ${product.unit}
-
-        <br>
-
-        🔴 Stock Out:
-        <strong>
-          ${summary.totalOut}
-        </strong>
-        ${product.unit}
-
-        <br><br>
-
-        📦 Current Stock:
-        <strong>
-          ${current.stock}
-        </strong>
-        ${product.unit}
-      `;
-
-    }
-
-
-    const summary =
-      summarizeAIMovements(
-        rows
-      );
-
-
-    return `
-      <strong>
-        📊 วันนี้
-      </strong>
-
-      <br><br>
-
-      🟢 Stock In:
-      <strong>
-        ${summary.totalIn}
-      </strong>
-
-      <br>
-
-      🔴 Stock Out:
-      <strong>
-        ${summary.totalOut}
-      </strong>
-
-      <br><br>
-
-      📊 สุทธิ:
-      <strong>
-        ${
-          summary.net >= 0
-            ? "+"
-            : ""
-        }${summary.net}
-      </strong>
-    `;
-
-  }
-
-
-  // ======================================
-  // LATEST
-  // ======================================
-
-  if (isLatest) {
-
-    const movements =
-      await getAIMovements();
-
-
-    if (!movements.length) {
-
-      return `
-        ยังไม่มี Stock Movement ครับ
-      `;
-
-    }
-
-
-    const rows =
-      product
-        ? movements.filter(
-            row =>
-              String(
-                row.product_id
-              ) ===
-              String(
-                product.id
-              )
-          )
-        : movements;
-
-
-    if (!rows.length) {
-
-      return `
-        ไม่พบ Movement ของ
-        <strong>
-          ${product.name_th}
-        </strong>
-        ครับ
-      `;
-
-    }
-
-
-    return `
-      <strong>
-        🕘 Latest Stock Movement
-      </strong>
-
-      <br><br>
-
-      ${formatAIMovementList(
-        rows,
-        10
-      )}
-    `;
-
-  }
-
-
-  // ======================================
-  // CURRENT PRODUCT STOCK
-  // ======================================
-
-  if (
-    product &&
-    (
-      isStockQuestion ||
-      isLowStock ||
-      isOutOfStock
-    )
-  ) {
-
-    aiConversationProduct =
-      product;
-
-
-    return buildAIProductStockResponse(
-      product
-    );
-
-  }
-
-
-  // ======================================
-  // PRODUCT WITHOUT STOCK WORD
-  // ======================================
-
-  if (product) {
-
-    const info =
-      getAIStock(
-        product
-      );
-
-
-    return `
-      <strong>
-        ${product.name_th}
-      </strong><br>
-
-      ${product.name_en}
-
-      <br><br>
-
-      📦 Current Stock:
-      <strong>
-        ${info.stock}
-      </strong>
-      ${product.unit}
-
-      <br><br>
-
-      ถ้าต้องการดูรายละเอียด
-      ลองถามว่า
-      <strong>
-        เหลือเท่าไหร่?
-      </strong>
-    `;
-
-  }
-
-
-  // ======================================
-  // GENERIC STOCK QUESTION
-  // ======================================
-
-  if (
-    isStockQuestion &&
-    !product
-  ) {
-
-    return `
-      ผมหาสินค้าที่ถามไม่เจอครับ 😅
-
-      <br><br>
-
-      ลองพิมพ์ชื่อสินค้า เช่น:
-      <br>
-
-      • ชาไทย
-      <br>
-
-      • อโรม่าแดง
-      <br>
-
-      • คาเนชั่น
-      <br>
-
-      • แก้ว PET 20oz
-      <br>
-
-      • ไซรัปคาราเมล
-    `;
-
-  }
-
-
-  // ======================================
-  // HELP
-  // ======================================
-
-  return `
-    ผมช่วยดู Stock ให้ได้หลายอย่างเลยครับ 👋
-
-    <br><br>
-
-    <strong>📦 สต็อกสินค้า</strong>
-    <br>
-
-    • ชาไทยเหลือเท่าไหร่?
-    <br>
-
-    • อโรม่าแดงเหลือเท่าไหร่?
-    <br>
-
-    • ITEM-02 เหลือเท่าไหร่?
-
-    <br><br>
-
-    <strong>⚠️ Stock Alert</strong>
-    <br>
-
-    • อะไรใกล้หมด?
-    <br>
-
-    • มีอะไรหมดแล้ว?
-
-    <br><br>
-
-    <strong>📅 ช่วงเวลา</strong>
-    <br>
-
-    • วันนี้ Stock Out มีอะไรบ้าง?
-    <br>
-
-    • 7 วันที่ผ่านมา ชาไทยเข้าออกเท่าไหร่?
-    <br>
-
-    • 30 วันที่ผ่านมา มีอะไรออกเยอะที่สุด?
-    <br>
-
-    • เดือนนี้ใช้อะไรเยอะสุด?
-
-    <br><br>
-
-    <strong>🕘 ล่าสุด</strong>
-    <br>
-
-    • รายการล่าสุดคืออะไร?
-  `;
 
 }
-
 // ========================================
 // AI EVENTS
 // ========================================
