@@ -10594,17 +10594,42 @@ function formatAIResponse(raw) {
       .replace(/\r/g, "\n");
 
 
-  // ========================================
-  // ESCAPE HTML
-  // ========================================
+ // ========================================
+// PRESERVE SAFE HTML FROM GEMINI
+// ========================================
 
-  text =
-    text
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
+text =
+  text
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<strong>/gi, "%%STRONG_OPEN%%")
+    .replace(/<\/strong>/gi, "%%STRONG_CLOSE%%");
 
 
+// ========================================
+// ESCAPE HTML
+// ========================================
+
+text =
+  text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+
+// ========================================
+// RESTORE SAFE STRONG TAG
+// ========================================
+
+text =
+  text
+    .replace(
+      /%%STRONG_OPEN%%/g,
+      "<strong>"
+    )
+    .replace(
+      /%%STRONG_CLOSE%%/g,
+      "</strong>"
+    );
   // ========================================
   // MARKDOWN BOLD
   // **text**
