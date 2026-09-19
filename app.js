@@ -10527,9 +10527,7 @@ async function answerAIQuestion(question) {
       );
     }
 
-    return formatAIResponse(
-  data.answer
-);
+    return data.answer;
 
   } catch (error) {
 
